@@ -14,4 +14,5 @@ type Video struct {
 	Title       string
 	Description string
 	PublicID    string
+	SecureURL   string
 }
