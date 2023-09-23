@@ -11,6 +11,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/raihan2bd/vidverse/initializers"
 	"github.com/raihan2bd/vidverse/models"
+	validator "github.com/raihan2bd/vidverse/validators"
 )
 
 func UploadVideo(c *gin.Context) {
@@ -21,8 +22,22 @@ func UploadVideo(c *gin.Context) {
 	}
 	defer file.Close()
 
+	validator := validator.New()
+
 	title := c.PostForm("title")
 	description := c.PostForm("description")
+
+	validator.Required(title, "title", "title is required.")
+	validator.IsLength(title, "title", 5, 255)
+	validator.Required(description, "description", "description is required")
+	validator.IsLength(description, "description", 25, 500)
+
+	if !validator.Valid() {
+		c.IndentedJSON(http.StatusBadRequest, gin.H{
+			"error": validator.GetErrMsg(),
+		})
+		return
+	}
 
 	// Define the upload directory
 	folder := "vidverse/uploads/videos"
