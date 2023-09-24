@@ -3,9 +3,11 @@ package main
 import (
 	"context"
 	"fmt"
-	"io"
 	"net/http"
+	"os"
+	"path/filepath"
 	"strconv"
+	"strings"
 
 	"github.com/cloudinary/cloudinary-go/v2/api/uploader"
 	"github.com/gin-gonic/gin"
@@ -98,8 +100,123 @@ func GetSingleVideo(c *gin.Context) {
 	})
 }
 
+func StreamVideoBuff(c *gin.Context) {
+	filename := filepath.Join("./uploads/videos", "./test.mp4")
+	videoFile, err := os.Open(filename)
+	if err != nil {
+		c.String(http.StatusInternalServerError, "Error opening video file")
+		return
+	}
+	defer videoFile.Close()
+
+	fileInfo, err := videoFile.Stat()
+	if err != nil {
+		c.String(http.StatusInternalServerError, "Error getting video file information")
+		return
+	}
+
+	rangeHeader := c.GetHeader("Range")
+	if rangeHeader == "" {
+		c.String(http.StatusBadRequest, "Range header not provided")
+		return
+	}
+
+	parts := strings.SplitN(rangeHeader, "=", 2)
+	if len(parts) != 2 || parts[0] != "bytes" {
+		c.String(http.StatusBadRequest, "Invalid Range header format")
+		return
+	}
+
+	byteRange := parts[1]
+	byteRanges := strings.SplitN(byteRange, "-", 2)
+	start, end := byteRanges[0], byteRanges[1]
+
+	startPos := 0
+	endPos := int(fileInfo.Size()) - 1
+
+	if start != "" {
+		startPos, _ = strconv.Atoi(start)
+	}
+	if end != "" {
+		endPos, _ = strconv.Atoi(end)
+	}
+
+	contentLength := endPos - startPos + 1
+
+	c.Header("Content-Range", fmt.Sprintf("bytes %d-%d/%d", startPos, endPos, fileInfo.Size()))
+	c.Header("Accept-Ranges", "bytes")
+	c.Header("Content-Length", fmt.Sprintf("%d", contentLength))
+	c.Header("Content-Type", "video/mp4")
+
+	c.Status(http.StatusPartialContent)
+
+	videoFile.Seek(int64(startPos), 0)
+	bufSize := 258 * 1024
+	buf := make([]byte, bufSize)
+	readSize := 0
+
+	for readSize < contentLength {
+		n := contentLength - readSize
+		if n > bufSize {
+			n = bufSize
+		}
+		n, err := videoFile.Read(buf[:n])
+		if err != nil {
+			break
+		}
+		c.Writer.Write(buf[:n])
+		readSize += n
+	}
+}
+
+// func StreamVideo(c *gin.Context) {
+// 	id, err := strconv.Atoi(c.Params.ByName("videoID"))
+// 	if err != nil {
+// 		c.JSON(http.StatusNotFound, gin.H{
+// 			"error": "404 video not found!",
+// 		})
+// 		return
+// 	}
+
+// 	var SecureURL string
+// 	result := initializers.DB.Table("videos").Select("secure_url").Where("id = ?", id).Scan(&SecureURL)
+// 	fmt.Println(SecureURL)
+
+// 	if result.Error != nil {
+// 		c.JSON(http.StatusNotFound, gin.H{
+// 			"error": "404 video not found!",
+// 		})
+// 		return
+// 	}
+
+// 	retriveVideo, err := http.Get(SecureURL)
+
+// 	if err != nil {
+// 		c.JSON(http.StatusNotFound, gin.H{"error": "404 video not found!"})
+// 		return
+// 	}
+
+// 	defer retriveVideo.Body.Close()
+// 	buffSize := 128 * 1024
+// 	buff := make([]byte, buffSize)
+
+// 	for {
+// 		n, err := retriveVideo.Body.Read(buff)
+// 		if err != nil && err != io.EOF {
+// 			// Handle the error
+// 			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to stream video"})
+// 			return
+// 		}
+// 		if n == 0 {
+// 			break
+// 		}
+// 		c.Writer.Write(buff[:n])
+// 		c.Writer.Flush()
+// 	}
+// }
+
 func StreamVideo(c *gin.Context) {
-	id, err := strconv.Atoi(c.Params.ByName("videoID"))
+	id, err := strconv.Atoi(c.Param("videoID")) // Use c.Param instead of c.Params.ByName
 	if err != nil {
 		c.JSON(http.StatusNotFound, gin.H{
 			"error": "404 video not found!",
@@ -109,8 +226,6 @@ func StreamVideo(c *gin.Context) {
 
 	var SecureURL string
 	result := initializers.DB.Table("videos").Select("secure_url").Where("id = ?", id).Scan(&SecureURL)
-	fmt.Println(SecureURL)
-
 	if result.Error != nil {
 		c.JSON(http.StatusNotFound, gin.H{
 			"error": "404 video not found!",
@@ -118,30 +233,24 @@ func StreamVideo(c *gin.Context) {
 		return
 	}
 
-	retriveVideo, err := http.Get(SecureURL)
-
-	if err != nil {
-		c.JSON(http.StatusNotFound, gin.H{"error": "404 video not found!"})
+	if SecureURL == "" {
+		c.JSON(http.StatusNotFound, gin.H{
+			"error": "Video URL not found!",
+		})
 		return
 	}
 
-	defer retriveVideo.Body.Close()
-	c.Header("Content-Type", "video/mp4")
-	buffSize := 1024 * 1024
-	buff := make([]byte, buffSize)
+	// Log the SecureURL for debugging purposes
+	fmt.Println("SecureURL:", SecureURL)
 
-	for {
-		n, err := retriveVideo.Body.Read(buff)
-		if err != nil && err != io.EOF {
-			// Handle the error
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to stream video"})
-			return
-		}
-		if n == 0 {
-			break
-		}
-		c.Writer.Write(buff[:n])
-		c.Writer.Flush()
+	http.ServeFile(c.Writer, c.Request, SecureURL)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": "Internal server error",
+		})
+		// You should also log the error for debugging
+		fmt.Println("ServeFile error:", err)
+		return
 	}
 }
 

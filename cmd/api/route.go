@@ -13,7 +13,7 @@ func NewRouter() *gin.Engine {
 	v1.POST("/uploads/video", UploadVideo)
 	v1.DELETE("/videos/:videoID", DeleteVidoe)
 	v1.GET("/videos/:videoID", GetSingleVideo)
-	v1.GET("/file/video/:videoID", StreamVideo)
+	v1.GET("/file/video/:videoID", StreamVideoBuff)
 
 	return r
 }
