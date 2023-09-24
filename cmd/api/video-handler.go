@@ -16,6 +16,21 @@ import (
 	validator "github.com/raihan2bd/vidverse/validators"
 )
 
+func GetAllVideos(c *gin.Context) {
+	var videos []models.Video
+
+	if err := initializers.DB.Find(&videos).Error; err != nil {
+		c.IndentedJSON(http.StatusInternalServerError, gin.H{
+			"error": "Internal server error. Please try again.",
+		})
+		return
+	}
+
+	c.IndentedJSON(http.StatusOK, gin.H{
+		"videos": videos,
+	})
+}
+
 func UploadVideo(c *gin.Context) {
 	file, _, err := c.Request.FormFile("file")
 	if err != nil {
@@ -96,7 +111,7 @@ func GetSingleVideo(c *gin.Context) {
 		"title":       video.Title,
 		"description": video.Description,
 		"id":          video.ID,
-		"vid_src":     fmt.Sprintf("/api/v1/file/video/%d", video.ID),
+		"vid_src":     video.SecureURL,
 	})
 }
 
