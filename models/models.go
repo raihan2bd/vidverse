@@ -1,18 +1,29 @@
 package models
 
-import "gorm.io/gorm"
+import (
+	"time"
+
+	"gorm.io/gorm"
+)
+
+type CustomModel struct {
+	ID        uint           `json:"id"`
+	CreatedAt time.Time      `json:"created_at"`
+	UpdatedAt time.Time      `json:"updated_at"`
+	DeletedAt gorm.DeletedAt `json:"-"`
+}
 
 type User struct {
-	gorm.Model
+	CustomModel
 	Name     string
 	Email    string
 	Password string `json:"-"`
 }
 
 type Video struct {
-	gorm.Model
-	Title       string
-	Description string
-	PublicID    string
-	SecureURL   string
+	CustomModel
+	Title       string `json:"title"`
+	Description string `json:"description"`
+	PublicID    string `json:"-"`
+	SecureURL   string `json:"secure_url"`
 }
