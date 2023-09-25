@@ -16,12 +16,11 @@ import (
 	validator "github.com/raihan2bd/vidverse/validators"
 )
 
-func GetAllVideos(c *gin.Context) {
-	var videos []models.Video
-
-	if err := initializers.DB.Find(&videos).Error; err != nil {
+func (app *application) GetAllVideosHandler(c *gin.Context) {
+	videos, err := app.DB.GetAllVideos()
+	if err != nil {
 		c.IndentedJSON(http.StatusInternalServerError, gin.H{
-			"error": "Internal server error. Please try again.",
+			"error": err,
 		})
 		return
 	}
