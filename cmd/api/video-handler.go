@@ -85,7 +85,7 @@ func UploadVideo(c *gin.Context) {
 	c.JSON(200, gin.H{"message": "File uploaded successfully", "video_id": video.ID})
 }
 
-func GetSingleVideo(c *gin.Context) {
+func (app *application) HandleGetSingleVideo(c *gin.Context) {
 	id, err := strconv.Atoi(c.Params.ByName("videoID"))
 	if err != nil {
 		c.IndentedJSON(http.StatusBadGateway, gin.H{
@@ -93,17 +93,21 @@ func GetSingleVideo(c *gin.Context) {
 		})
 		return
 	}
-
-	var video models.Video
+	var video *models.Video
 	if id > 0 {
-		initializers.DB.First(&video, "id = ?", id)
+		video, err = app.DB.GetVidoeByID(id)
 
-		if video.ID == 0 {
+		if err != nil {
 			c.JSON(http.StatusNotFound, gin.H{
-				"error": "404 video not found!",
+				"error": err,
 			})
 			return
 		}
+	} else {
+		c.JSON(http.StatusNotFound, gin.H{
+			"error": "404 video not found!",
+		})
+		return
 	}
 
 	c.IndentedJSON(http.StatusOK, gin.H{

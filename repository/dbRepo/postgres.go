@@ -14,5 +14,19 @@ func (m *postgresDBRepo) GetAllVideos() ([]models.Video, error) {
 	}
 
 	return videos, nil
+}
 
+// Get single video by Id
+func (m *postgresDBRepo) GetVidoeByID(id int) (*models.Video, error) {
+
+	var video models.Video
+	if id > 0 {
+		m.DB.First(&video, "id = ?", id)
+
+		if video.ID == 0 {
+			return nil, errors.New("404 video not found")
+		}
+	}
+
+	return &video, nil
 }
