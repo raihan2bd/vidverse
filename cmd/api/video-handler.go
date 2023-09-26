@@ -16,7 +16,7 @@ import (
 	validator "github.com/raihan2bd/vidverse/validators"
 )
 
-func (app *application) GetAllVideosHandler(c *gin.Context) {
+func (app *application) HandleGetAllVideos(c *gin.Context) {
 	videos, err := app.DB.GetAllVideos()
 	if err != nil {
 		c.IndentedJSON(http.StatusInternalServerError, gin.H{
