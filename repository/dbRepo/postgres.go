@@ -30,3 +30,13 @@ func (m *postgresDBRepo) GetVidoeByID(id int) (*models.Video, error) {
 
 	return &video, nil
 }
+
+// Delete video by ID
+func (m *postgresDBRepo) DeleteVideoByID(id int) error {
+	result := m.DB.Unscoped().Delete(&models.Video{}, id)
+	if result.Error != nil {
+		return errors.New("something went wrong. failed to delete the video")
+	}
+
+	return nil
+}

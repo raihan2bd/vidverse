@@ -273,7 +273,7 @@ func StreamVideo(c *gin.Context) {
 }
 
 // Delete video
-func DeleteVidoe(c *gin.Context) {
+func (app *application) HandleDeleteVidoe(c *gin.Context) {
 	id, err := strconv.Atoi(c.Params.ByName("videoID"))
 	if err != nil {
 		c.IndentedJSON(http.StatusNotFound, gin.H{
@@ -293,19 +293,7 @@ func DeleteVidoe(c *gin.Context) {
 		return
 	}
 
-	fmt.Println(publicID)
-
-	// delete the video
-
-	result = initializers.DB.Unscoped().Delete(&models.Video{}, id)
-	if result.Error != nil {
-		c.IndentedJSON(http.StatusNotFound, gin.H{
-			"error": "something went wrong. failed to delete the video",
-		})
-		return
-	}
-
-	adminResp, err := initializers.CLD.Upload.Destroy(context.Background(), uploader.DestroyParams{PublicID: publicID, ResourceType: "video"})
+	_, err = initializers.CLD.Upload.Destroy(context.Background(), uploader.DestroyParams{PublicID: publicID, ResourceType: "video"})
 
 	if err != nil {
 		fmt.Println(err)
@@ -315,9 +303,17 @@ func DeleteVidoe(c *gin.Context) {
 		return
 	}
 
+	// delete the video
+	err = app.DB.DeleteVideoByID(id)
+	if err != nil {
+		c.IndentedJSON(http.StatusNotFound, gin.H{
+			"error": "something went wrong. failed to delete the video",
+		})
+		return
+	}
+
 	c.IndentedJSON(http.StatusOK, gin.H{
-		"message":  "Successfully deleted the video",
-		"cld_resp": adminResp,
+		"message": "Successfully deleted the video",
 	})
 
 }
