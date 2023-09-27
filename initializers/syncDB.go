@@ -3,6 +3,5 @@ package initializers
 import "github.com/raihan2bd/vidverse/models"
 
 func SyncDatabase() {
-	DB.AutoMigrate(&models.User{})
-	DB.AutoMigrate(&models.Video{})
+	DB.AutoMigrate(&models.User{}, &models.Channel{}, &models.Video{}, &models.Like{}, &models.Comment{})
 }
