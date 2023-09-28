@@ -69,7 +69,7 @@ func UploadVideo(c *gin.Context) {
 		return
 	}
 
-	video := models.Video{Title: title, Description: description, PublicID: resp.PublicID, SecureURL: resp.SecureURL}
+	video := models.Video{Title: title, Description: description, PublicID: resp.PublicID, SecureURL: resp.SecureURL, ChannelID: 1}
 
 	// user := models.User{Email: body.Email, Password: string(hash)}
 	result := initializers.DB.Create(&video)
