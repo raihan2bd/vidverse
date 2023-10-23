@@ -9,13 +9,16 @@ func (app *application) NewRouter() *gin.Engine {
 	r := gin.New()
 
 	config := cors.DefaultConfig()
-	config.AllowAllOrigins = true
+	config.AllowOrigins = []string{"http://localhost:3000"}
+	config.AllowCredentials = true
+
 	r.Use(cors.New(config))
 	r.Use(gin.Logger())
 
+	r.Use(app.IsLoggedIn)
 	v1 := r.Group("/api/v1")
 	v1.GET("/", GetStatus)
-	v1.GET("/auth/login", app.LoginHandler)
+	v1.POST("/auth/login", app.LoginHandler)
 	v1.GET("/auth/signup", app.SignupHandler)
 	v1.GET("/videos", app.HandleGetAllVideos)
 	v1.POST("/videos", UploadVideo)
