@@ -65,29 +65,15 @@ func (v *Validator) IsEmail(email, key, message string) {
 }
 
 // isValidPassword validates the password with the given key
-func (v *Validator) IsValidPassword(password, key string, minLength ...int) {
+func (v *Validator) IsValidPassword(password, key string) {
 	// Set initial flags to false
 	var (
-		hasMinLen  = false
 		hasUpper   = false
 		hasLower   = false
 		hasNumber  = false
 		hasSpecial = false
 		hasSpace   = false
 	)
-
-	// set default min length if there is no parameter
-	minLen := 8
-
-	// set min password length to given length if any
-	if len(minLength) > 0 {
-		minLen = minLength[0]
-	}
-
-	// Check if password length is at least minLength characters
-	if len(password) >= minLen {
-		hasMinLen = true
-	}
 
 	// Loop through each character in the password
 	for _, char := range password {
@@ -108,11 +94,6 @@ func (v *Validator) IsValidPassword(password, key string, minLength ...int) {
 		case unicode.IsSpace(char):
 			hasSpace = true
 		}
-	}
-
-	// Check if the password meets the minimum length requirement
-	if !hasMinLen {
-		v.AddError(key, "Password must have at least 8 characters")
 	}
 
 	// Check if the password has at least one uppercase letter
@@ -144,7 +125,7 @@ func (v *Validator) IsValidPassword(password, key string, minLength ...int) {
 // IsValidFullName validates the FullName with the given key
 func (v *Validator) IsValidFullName(fullName, key string) {
 	// Regular expression pattern for full name
-	pattern := `^([A-Z][a-z]{1,})(\s[A-Z][a-z]{1,})+$`
+	pattern := `^([A-Za-z])(\s?[A-Za-z])+$`
 
 	// Compile the regular expression
 	regex := regexp.MustCompile(pattern)
