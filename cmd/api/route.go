@@ -19,7 +19,7 @@ func (app *application) NewRouter() *gin.Engine {
 	v1 := r.Group("/api/v1")
 	v1.GET("/", GetStatus)
 	v1.POST("/auth/login", app.LoginHandler)
-	v1.GET("/auth/signup", app.SignupHandler)
+	v1.POST("/auth/signup", app.SignupHandler)
 	v1.GET("/videos", app.HandleGetAllVideos)
 	v1.POST("/videos", UploadVideo)
 	v1.GET("/videos/:videoID", app.HandleGetSingleVideo)

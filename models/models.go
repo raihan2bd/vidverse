@@ -17,7 +17,7 @@ type User struct {
 	CustomModel
 	Name     string `gorm:"type:varchar(100);not null" json:"name" binding:"required,min=3,max=100"`
 	Email    string `gorm:"type:varchar(255);unique;not null" json:"email" binding:"required,email"`
-	Password string `gorm:"type:varchar(255);not null" json:"-"`
+	Password string `gorm:"type:varchar(255);not null" json:"-" binding:"required,min=6,max=255"`
 }
 
 type Channel struct {
