@@ -7,6 +7,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v5"
+	"github.com/raihan2bd/vidverse/models"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -57,5 +58,23 @@ func (app *application) HandleMyAuthInfo(c *gin.Context) {
 }
 
 func (app *application) SignupHandler(c *gin.Context) {
+	var user models.User
 
+	err := c.ShouldBindJSON(&user)
+	if err != nil {
+		if err.Error() == "EOF" {
+			c.JSON(http.StatusBadRequest, gin.H{
+				"error": "Invalid inputs request",
+			})
+			return
+		}
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": err.Error(),
+		})
+		return
+	}
+
+	c.JSON(http.StatusCreated, gin.H{
+		"message": "You account successfully created!. Login into your account now!",
+	})
 }
