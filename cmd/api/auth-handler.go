@@ -67,7 +67,7 @@ func (app *application) HandleMyAuthInfo(c *gin.Context) {
 }
 
 func (app *application) SignupHandler(c *gin.Context) {
-	var payload models.User
+	var payload models.UserPayload
 
 	if err := c.BindJSON(&payload); err != nil {
 		c.IndentedJSON(http.StatusBadRequest, gin.H{
@@ -77,17 +77,18 @@ func (app *application) SignupHandler(c *gin.Context) {
 		return
 	}
 
+	payload.Name = strings.TrimSpace(payload.Name)
+	payload.UserName = strings.TrimSpace(strings.ToLower(payload.UserName))
+
 	// initialize the validator
 	v := validator.New()
 
 	// validate user name
-	payload.Name = strings.TrimSpace(payload.Name)
 	v.Required(payload.Name, "name", "Name is Required")
 	v.IsLength(payload.Name, "name", 3, 100)
 	v.IsValidFullName(payload.Name, "name")
 
 	// validate username
-	payload.UserName = strings.TrimSpace(strings.ToLower(payload.UserName))
 	v.IsLength(payload.UserName, "username", 5, 100)
 	regex := regexp.MustCompile(`^[a-z][a-z0-9]*$`)
 	if !regex.MatchString(payload.UserName) {
@@ -109,9 +110,51 @@ func (app *application) SignupHandler(c *gin.Context) {
 		return
 	}
 
+	// check username is exist
+	user, _ := app.DB.GetUserByUsername(payload.UserName)
+	if user != nil {
+		c.IndentedJSON(http.StatusBadRequest, gin.H{
+			"error": "username is already taken. please try another one",
+		})
+		return
+	}
+
+	// check email is exist
+	user, _ = app.DB.GetUserByEmail(payload.Email)
+	if user != nil {
+		c.IndentedJSON(http.StatusBadRequest, gin.H{
+			"error": "email address is already exist. please try another one",
+		})
+		return
+	}
+
+	// hash the password
+	hash, err := bcrypt.GenerateFromPassword([]byte(payload.Password), 12)
+	if err != nil {
+		c.IndentedJSON(http.StatusInternalServerError, gin.H{
+			"error": "something went wrong. please try again later.",
+		})
+		return
+	}
+
 	// save the info into the database
+	newUser := models.User{
+		Name:     payload.Name,
+		UserName: payload.UserName,
+		Password: string(hash),
+		Email:    payload.Email,
+	}
+
+	id, err := app.DB.CreateNewUser(&newUser)
+	if err != nil {
+		c.IndentedJSON(http.StatusInternalServerError, gin.H{
+			"error": err,
+		})
+		return
+	}
 
 	c.JSON(http.StatusCreated, gin.H{
 		"message": "You account successfully created!. Login into your account now!",
+		"id":      id,
 	})
 }
