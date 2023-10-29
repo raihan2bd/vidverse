@@ -4,7 +4,49 @@ import (
 	"errors"
 
 	"github.com/raihan2bd/vidverse/models"
+	"gorm.io/gorm"
 )
+
+// Get user by username
+func (m *postgresDBRepo) GetUserByUsername(username string) (*models.User, error) {
+	var user models.User
+
+	var ErrUserNotFound = errors.New("user not found")
+
+	result := m.DB.First(&user, "user_name = ?", username)
+
+	if errors.Is(result.Error, gorm.ErrRecordNotFound) {
+		return nil, ErrUserNotFound
+	}
+
+	if result.Error != nil {
+		return nil, ErrUserNotFound
+	}
+
+	user.Password = ""
+	return &user, nil
+}
+
+// Get user by email
+func (m *postgresDBRepo) GetUserByEmail(email string) (*models.User, error) {
+	var user models.User
+	m.DB.First(&user, "email = ?", email)
+	if user.ID > 0 {
+		user.Password = ""
+		return &user, nil
+	}
+	return nil, errors.New("404 user not found")
+}
+
+// create new user
+func (m *postgresDBRepo) CreateNewUser(user *models.User) (int, error) {
+	result := m.DB.Create(&user)
+	if result.Error != nil {
+		return 0, errors.New("failed to create the user. please try again later")
+	}
+
+	return int(user.ID), nil
+}
 
 // Get all videos from the database
 func (m *postgresDBRepo) GetAllVideos() ([]models.Video, error) {
