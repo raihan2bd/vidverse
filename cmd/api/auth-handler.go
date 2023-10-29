@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"log"
 	"net/http"
 	"regexp"
@@ -21,24 +20,47 @@ type PayloadUser struct {
 }
 
 func (app *application) LoginHandler(c *gin.Context) {
-	hash, err := bcrypt.GenerateFromPassword([]byte("123456"), 10)
-	if err != nil {
-		fmt.Println(err)
+	// Get user credentials from req body
+	var payload models.UserPayload
+	if err := c.BindJSON(&payload); err != nil {
+		c.IndentedJSON(http.StatusBadRequest, gin.H{
+			"error": "Invalid credentials",
+		})
+		log.Println(err.Error())
 		return
 	}
 
-	password := string(hash)
+	user, _ := app.DB.GetUserByEmail(payload.Email)
+
+	if user == nil {
+		c.IndentedJSON(http.StatusUnauthorized, gin.H{
+			"error": "Invalid email or password",
+		})
+		return
+	}
+
+	if user.ID <= 0 {
+		c.IndentedJSON(http.StatusUnauthorized, gin.H{
+			"error": "Invalid email or password",
+		})
+		return
+	}
 
 	// Compare the password
-	err = bcrypt.CompareHashAndPassword([]byte(password), []byte("123456"))
+	err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(payload.Password))
 	if err != nil {
-		fmt.Println(err)
+		c.IndentedJSON(http.StatusUnauthorized, gin.H{
+			"error": "Invalid email or password",
+		})
 		return
 	}
 
+	// Generate Token
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
-		"sub": "raihan2bd",
-		"exp": time.Now().Add(time.Hour * 24 * 30).Unix(),
+		"sub":       user.ID,
+		"user_role": user.UserRole,
+		"user_name": user.UserName,
+		"exp":       time.Now().Add(time.Hour * 24 * 30).Unix(),
 	})
 
 	tokenString, err := token.SignedString([]byte("My-Secret"))
