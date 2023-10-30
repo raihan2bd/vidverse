@@ -14,19 +14,18 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
-type PayloadUser struct {
-	models.User
-	Password string `gorm:"type:varchar(255);not null" json:"password" binding:"required,min=6,max=255"`
-}
-
 func (app *application) LoginHandler(c *gin.Context) {
 	// Get user credentials from req body
-	var payload models.UserPayload
+	type UserCreds struct {
+		Email    string `json:"email"`
+		Password string `json:"password"`
+	}
+	var payload UserCreds
+
 	if err := c.BindJSON(&payload); err != nil {
 		c.IndentedJSON(http.StatusBadRequest, gin.H{
 			"error": "Invalid credentials",
 		})
-		log.Println(err.Error())
 		return
 	}
 

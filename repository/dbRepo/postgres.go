@@ -23,7 +23,6 @@ func (m *postgresDBRepo) GetUserByUsername(username string) (*models.User, error
 		return nil, ErrUserNotFound
 	}
 
-	user.Password = ""
 	return &user, nil
 }
 
@@ -32,7 +31,6 @@ func (m *postgresDBRepo) GetUserByEmail(email string) (*models.User, error) {
 	var user models.User
 	m.DB.First(&user, "email = ?", email)
 	if user.ID > 0 {
-		user.Password = ""
 		return &user, nil
 	}
 	return nil, errors.New("404 user not found")

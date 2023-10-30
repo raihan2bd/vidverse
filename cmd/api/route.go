@@ -15,7 +15,7 @@ func (app *application) NewRouter() *gin.Engine {
 	r.Use(cors.New(config))
 	r.Use(gin.Logger())
 
-	r.Use(app.IsLoggedIn)
+	// r.Use(app.IsLoggedIn)
 	v1 := r.Group("/api/v1")
 	v1.GET("/", GetStatus)
 	v1.POST("/auth/login", app.LoginHandler)
