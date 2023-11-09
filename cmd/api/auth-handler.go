@@ -3,6 +3,7 @@ package main
 import (
 	"log"
 	"net/http"
+	"os"
 	"regexp"
 	"strings"
 	"time"
@@ -54,15 +55,19 @@ func (app *application) LoginHandler(c *gin.Context) {
 		return
 	}
 
+	exp := time.Now().Add(time.Second * 24).Unix()
+
 	// Generate Token
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
 		"sub":       user.ID,
 		"user_role": user.UserRole,
 		"user_name": user.UserName,
-		"exp":       time.Now().Add(time.Hour * 24 * 30).Unix(),
+		"exp":       exp,
 	})
 
-	tokenString, err := token.SignedString([]byte("My-Secret"))
+	jwtSecret := os.Getenv("JWT_SECRET")
+
+	tokenString, err := token.SignedString([]byte(jwtSecret))
 
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
@@ -72,19 +77,31 @@ func (app *application) LoginHandler(c *gin.Context) {
 		return
 	}
 
-	c.SetSameSite(http.SameSiteLaxMode)
-	c.SetCookie("Authorization", tokenString, 3600*24*30, "/", "", false, true)
+	// c.SetSameSite(http.SameSiteLaxMode)
+	// c.SetCookie("Authorization", tokenString, 3600*24*30, "/", "", false, true)
+
+	var userResponse struct {
+		ID       uint   `json:"id"`
+		Username string `json:"user_name"`
+		UserRole string `json:"user_role"`
+		Avatar   string `json:"avatar"`
+	}
+
+	userResponse.ID = user.ID
+	userResponse.Username = user.UserName
+	userResponse.UserRole = user.UserRole
+	userResponse.Avatar = user.Avatar
 
 	// send it as a response
 	c.JSON(http.StatusOK, gin.H{
-		"message": "Successfully logged in",
-		"token":   tokenString,
+		"user":       userResponse,
+		"token":      tokenString,
+		"expires_at": exp,
 	})
 
 }
 
 func (app *application) HandleMyAuthInfo(c *gin.Context) {
-
 }
 
 func (app *application) SignupHandler(c *gin.Context) {

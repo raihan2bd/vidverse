@@ -56,6 +56,7 @@ type Video struct {
 	Thumb       string    `gorm:"type:varchar(255)" json:"tumb"`
 	Likes       []Like    `json:"likes"`
 	Comments    []Comment `json:"comments"`
+	Views       int64     `gorm:"type:bigint;not null;default:0" json:"views"`
 }
 
 type Like struct {
