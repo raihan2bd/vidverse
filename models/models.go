@@ -59,6 +59,16 @@ type Video struct {
 	Views       int64     `gorm:"type:bigint;not null;default:0" json:"views,omitempty"`
 }
 
+type VideoDTO struct {
+	ID           uint   `json:"id"`
+	Title        string `json:"title"`
+	Thumb        string `json:"thumb"`
+	Views        int64  `json:"views"`
+	ChannelID    uint   `json:"channel_id"`
+	ChannelTitle string `json:"channel_title"`
+	ChannelLogo  string `json:"channel_logo"`
+}
+
 type Like struct {
 	CustomModel
 	UserID  uint  `json:"user_id"`
