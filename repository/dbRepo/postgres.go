@@ -47,9 +47,13 @@ func (m *postgresDBRepo) CreateNewUser(user *models.User) (int, error) {
 }
 
 // Get all videos from the database
-func (m *postgresDBRepo) GetAllVideos() ([]models.Video, error) {
-	var videos []models.Video
-	if err := m.DB.Find(&videos).Error; err != nil {
+func (m *postgresDBRepo) GetAllVideos() ([]models.VideoDTO, error) {
+	var videos []models.VideoDTO
+
+	err := m.DB.Table("videos").Select("videos.id, videos.title, videos.thumb, videos.views, channels.id as channel_id, channels.title as channel_title, channels.logo as channel_logo").
+		Joins("left join channels on channels.id = videos.channel_id").
+		Find(&videos).Error
+	if err != nil {
 		return nil, errors.New("internal server error. Please try again")
 	}
 
