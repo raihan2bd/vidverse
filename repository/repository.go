@@ -7,7 +7,7 @@ type DatabaseRepo interface {
 	GetUserByUsername(username string) (*models.User, error)
 	GetUserByEmail(email string) (*models.User, error)
 
-	GetAllVideos() ([]models.Video, error)
+	GetAllVideos() ([]models.VideoDTO, error)
 	GetVidoeByID(id int) (*models.Video, error)
 	DeleteVideoByID(id int) error
 }
