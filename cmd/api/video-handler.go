@@ -17,7 +17,26 @@ import (
 )
 
 func (app *application) HandleGetAllVideos(c *gin.Context) {
-	videos, err := app.DB.GetAllVideos()
+	// pagination
+	page, err := strconv.Atoi(c.DefaultQuery("page", "1"))
+	if err != nil {
+		c.IndentedJSON(http.StatusBadRequest, gin.H{
+			"error": "Invalid page number",
+		})
+		return
+	}
+
+	// limit
+	limit, err := strconv.Atoi(c.DefaultQuery("limit", "24"))
+	if err != nil {
+		c.IndentedJSON(http.StatusBadRequest, gin.H{
+			"error": "Invalid limit number",
+		})
+		return
+	}
+
+	// Get all videos
+	videos, err := app.DB.GetAllVideos(page, limit)
 	if err != nil {
 		c.IndentedJSON(http.StatusInternalServerError, gin.H{
 			"error": err,
