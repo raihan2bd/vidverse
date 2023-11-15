@@ -17,6 +17,9 @@ import (
 )
 
 func (app *application) HandleGetAllVideos(c *gin.Context) {
+	// search query
+	searchQuery := c.DefaultQuery("search", "")
+
 	// pagination
 	page, err := strconv.Atoi(c.DefaultQuery("page", "1"))
 	if err != nil {
@@ -36,7 +39,7 @@ func (app *application) HandleGetAllVideos(c *gin.Context) {
 	}
 
 	// Get all videos
-	videos, err := app.DB.GetAllVideos(page, limit)
+	videos, count, err := app.DB.GetAllVideos(page, limit, searchQuery)
 	if err != nil {
 		c.IndentedJSON(http.StatusInternalServerError, gin.H{
 			"error": err,
@@ -44,8 +47,17 @@ func (app *application) HandleGetAllVideos(c *gin.Context) {
 		return
 	}
 
+	// has next page
+	hasNextPage := false
+	if count > int64(page*limit) {
+		hasNextPage = true
+	}
+
 	c.IndentedJSON(http.StatusOK, gin.H{
-		"videos": videos,
+		"videos":        videos,
+		"page":          page,
+		"limit":         limit,
+		"has_next_page": hasNextPage,
 	})
 }
 
