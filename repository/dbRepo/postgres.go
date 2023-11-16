@@ -85,16 +85,16 @@ func (m *postgresDBRepo) GetTotalVideosCount(searchQuery string) (int64, error) 
 }
 
 // Get single video by Id
-func (m *postgresDBRepo) GetVidoeByID(id int) (*models.Video, error) {
+func (m *postgresDBRepo) GetVideoByID(id int) (*models.Video, error) {
 
 	var video models.Video
-	if id > 0 {
-		m.DB.First(&video, "id = ?", id)
-
-		if video.ID == 0 {
-			return nil, errors.New("404 video not found")
-		}
+	err := m.DB.Preload("Likes").Preload("Comments").Preload("Channel").First(&video, "id = ?", id).Error
+	if err != nil {
+		return nil, errors.New("404 video not found")
 	}
+	// update view count
+	m.DB.Model(&video).Update("views", video.Views+1)
+	video.Views = video.Views + 1
 
 	return &video, nil
 }

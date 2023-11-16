@@ -126,7 +126,7 @@ func (app *application) HandleGetSingleVideo(c *gin.Context) {
 	}
 	var video *models.Video
 	if id > 0 {
-		video, err = app.DB.GetVidoeByID(id)
+		video, err = app.DB.GetVideoByID(id)
 
 		if err != nil {
 			c.JSON(http.StatusNotFound, gin.H{
@@ -141,12 +141,24 @@ func (app *application) HandleGetSingleVideo(c *gin.Context) {
 		return
 	}
 
+	var channel = &models.ChannelPayload{
+		ID:          video.Channel.ID,
+		Title:       video.Channel.Title,
+		Description: video.Channel.Description,
+		Logo:        video.Channel.Logo,
+		UserID:      video.Channel.UserID,
+	}
+
 	c.IndentedJSON(http.StatusOK, gin.H{
 		"title":       video.Title,
 		"description": video.Description,
 		"id":          video.ID,
 		"vid_src":     video.SecureURL,
+		"channel":     channel,
+		"likes":       len(video.Likes),
+		"views":       video.Views,
 	})
+
 }
 
 func StreamVideoBuff(c *gin.Context) {

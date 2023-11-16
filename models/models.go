@@ -45,6 +45,14 @@ type Channel struct {
 	Videos      []Video `gorm:"foreignKey:ChannelID" json:"videos"`
 }
 
+type ChannelPayload struct {
+	ID          uint   `json:"id"`
+	Title       string `gorm:"type:varchar(100)" json:"title,omitempty"`
+	Description string `gorm:"type:text;size:500" json:"description,omitempty"`
+	Logo        string `gorm:"type:varchar(255);" json:"logo,omitempty"`
+	UserID      uint   `json:"user_id,omitempty"`
+}
+
 type Video struct {
 	CustomModel
 	Title       string    `gorm:"type:varchar(255);not null" json:"title,omitempty" binding:"required,min=2,max=255"`
