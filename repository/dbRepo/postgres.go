@@ -108,3 +108,18 @@ func (m *postgresDBRepo) DeleteVideoByID(id int) error {
 
 	return nil
 }
+
+// Get related videos
+func (m *postgresDBRepo) GetVideosByChannelID(id int) ([]models.VideoDTO, error) {
+	var videos []models.VideoDTO
+	err := m.DB.Table("videos").Select("videos.id, videos.title, videos.thumb, videos.views, channels.id as channel_id, channels.title as channel_title, channels.logo as channel_logo").
+		Joins("left join channels on channels.id = videos.channel_id").
+		Where("videos.channel_id = ?", id).
+		Order("videos.created_at asc").
+		Find(&videos).Error
+	if err != nil {
+		return nil, errors.New("internal server error. Please try again")
+	}
+
+	return videos, nil
+}
