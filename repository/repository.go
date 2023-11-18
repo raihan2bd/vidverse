@@ -10,5 +10,6 @@ type DatabaseRepo interface {
 	GetAllVideos(page, limit int, searchQuery string) ([]models.VideoDTO, int64, error)
 	GetTotalVideosCount(searchQuery string) (int64, error)
 	GetVideoByID(id int) (*models.Video, error)
+	GetVideosByChannelID(id int) ([]models.VideoDTO, error)
 	DeleteVideoByID(id int) error
 }

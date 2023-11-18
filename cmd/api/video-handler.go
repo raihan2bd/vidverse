@@ -161,6 +161,41 @@ func (app *application) HandleGetSingleVideo(c *gin.Context) {
 
 }
 
+// Get related videos
+func (app *application) HandleGetRelatedVideos(c *gin.Context) {
+	id, err := strconv.Atoi(c.Params.ByName("channelID"))
+	if err != nil {
+		c.IndentedJSON(http.StatusBadGateway, gin.H{
+			"error": "Invalid ID",
+		})
+		return
+	}
+
+	var videos []models.VideoDTO
+	videos, err = app.DB.GetVideosByChannelID(id)
+
+	if err != nil {
+		c.IndentedJSON(http.StatusNotFound, gin.H{
+			"error": "404 video not found!",
+		})
+		return
+	}
+
+	if len(videos) == 0 {
+		videos, _, err = app.DB.GetAllVideos(1, 24, "")
+		if err != nil {
+			c.IndentedJSON(http.StatusInternalServerError, gin.H{
+				"error": err,
+			})
+			return
+		}
+	}
+
+	c.IndentedJSON(http.StatusOK, gin.H{
+		"videos": videos,
+	})
+}
+
 func StreamVideoBuff(c *gin.Context) {
 	filename := filepath.Join("./uploads/videos", "./test.mp4")
 	videoFile, err := os.Open(filename)
