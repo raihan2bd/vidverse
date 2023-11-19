@@ -77,9 +77,6 @@ func (app *application) LoginHandler(c *gin.Context) {
 		return
 	}
 
-	// c.SetSameSite(http.SameSiteLaxMode)
-	// c.SetCookie("Authorization", tokenString, 3600*24*30, "/", "", false, true)
-
 	var userResponse struct {
 		ID       uint   `json:"id"`
 		Username string `json:"user_name"`
