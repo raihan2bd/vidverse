@@ -445,3 +445,32 @@ func (app *application) HandleDeleteVidoe(c *gin.Context) {
 // }
 
 // Upload file with cloudinary
+
+// Get comments
+func (app *application) HandleGetComments(c *gin.Context) {
+	id, err := strconv.Atoi(c.Params.ByName("videoID"))
+	var page, limit int
+	page, err = strconv.Atoi(c.DefaultQuery("page", "1"))
+	limit, err = strconv.Atoi(c.DefaultQuery("limit", "10"))
+
+	if err != nil {
+		c.JSON(http.StatusNotFound, gin.H{
+			"error": "404 video not found!",
+		})
+		return
+	}
+
+	var comments []models.CommentDTO
+	comments, err = app.DB.GetCommentsByVideoID(id, limit, page)
+
+	if err != nil {
+		c.JSON(http.StatusNotFound, gin.H{
+			"error": "404 video not found!",
+		})
+		return
+	}
+
+	c.IndentedJSON(http.StatusOK, gin.H{
+		"comments": comments,
+	})
+}
