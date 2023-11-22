@@ -93,3 +93,12 @@ type Comment struct {
 	Video   Video  `gorm:"foreignKey:VideoID"`
 	User    User   `gorm:"foreignKey:UserID"`
 }
+
+type CommentDTO struct {
+	ID         uint   `json:"id"`
+	Text       string `json:"text"`
+	VideoID    uint   `json:"video_id"`
+	UserID     uint   `json:"user_id"`
+	UserName   string `json:"user_name"`
+	UserAvatar string `json:"user_avatar"`
+}
