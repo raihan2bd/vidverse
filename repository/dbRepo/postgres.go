@@ -78,7 +78,6 @@ func (m *postgresDBRepo) GetTotalVideosCount(searchQuery string) (int64, error) 
 
 	if err != nil {
 		return 0, errors.New("internal server error. Please try again")
-
 	}
 
 	return count, nil
@@ -122,4 +121,24 @@ func (m *postgresDBRepo) GetVideosByChannelID(id int) ([]models.VideoDTO, error)
 	}
 
 	return videos, nil
+}
+
+// Get all comments
+func (m *postgresDBRepo) GetCommentsByVideoID(id, page, limit int) ([]models.CommentDTO, int64, error) {
+	var comments []models.CommentDTO
+	var count int64
+	offset := (page - 1) * limit
+
+	err := m.DB.Table("comments").Select("comments.id, comments.text, comments.video_id, users.id as user_id, users.name as user_name, users.avatar as user_avatar").
+		Joins("left join users on users.id = comments.user_id").
+		Where("comments.video_id = ?", id).
+		Count(&count).
+		Offset(offset).Limit(limit).
+		Order("comments.created_at desc").
+		Find(&comments).Error
+	if err != nil {
+		return nil, 0, errors.New("internal server error. Please try again")
+	}
+
+	return comments, count, nil
 }
