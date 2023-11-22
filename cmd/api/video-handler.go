@@ -449,9 +449,25 @@ func (app *application) HandleDeleteVidoe(c *gin.Context) {
 // Get comments
 func (app *application) HandleGetComments(c *gin.Context) {
 	id, err := strconv.Atoi(c.Params.ByName("videoID"))
+
+	if err != nil {
+		c.JSON(http.StatusNotFound, gin.H{
+			"error":  "404 video not found!",
+			"errors": err,
+		})
+		return
+	}
+
 	var page, limit int
 	page, err = strconv.Atoi(c.DefaultQuery("page", "1"))
-	limit, err = strconv.Atoi(c.DefaultQuery("limit", "10"))
+	if err != nil {
+		c.JSON(http.StatusNotFound, gin.H{
+			"error": "404 video not found!",
+		})
+		return
+	}
+
+	limit, err = strconv.Atoi(c.DefaultQuery("limit", "24"))
 
 	if err != nil {
 		c.JSON(http.StatusNotFound, gin.H{
@@ -461,7 +477,8 @@ func (app *application) HandleGetComments(c *gin.Context) {
 	}
 
 	var comments []models.CommentDTO
-	comments, err = app.DB.GetCommentsByVideoID(id, limit, page)
+	var count int64
+	comments, count, err = app.DB.GetCommentsByVideoID(id, page, limit)
 
 	if err != nil {
 		c.JSON(http.StatusNotFound, gin.H{
@@ -470,7 +487,17 @@ func (app *application) HandleGetComments(c *gin.Context) {
 		return
 	}
 
+	var hasNextPage bool
+
+	if count > int64(page*limit) {
+		hasNextPage = true
+	} else {
+		hasNextPage = false
+	}
+
 	c.IndentedJSON(http.StatusOK, gin.H{
-		"comments": comments,
+		"page":          page,
+		"comments":      comments,
+		"has_next_page": hasNextPage,
 	})
 }
