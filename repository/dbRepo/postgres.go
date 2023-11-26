@@ -142,3 +142,15 @@ func (m *postgresDBRepo) GetCommentsByVideoID(id, page, limit int) ([]models.Com
 
 	return comments, count, nil
 }
+
+// Get All the channels
+func (m *postgresDBRepo) GetChannels(userID int) ([]models.CustomChannel, error) {
+	var channels []models.CustomChannel
+	err := m.DB.Table("channels").Select("channels.id, channels.title, channels.logo").Where("channels.user_id = ?", userID).
+		Find(&channels).Error
+	if err != nil {
+		return nil, errors.New("internal server error. Please try again")
+	}
+
+	return channels, nil
+}
