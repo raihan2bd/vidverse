@@ -102,3 +102,9 @@ type CommentDTO struct {
 	UserName   string `json:"user_name"`
 	UserAvatar string `json:"user_avatar"`
 }
+
+type CustomChannel struct {
+	ID    uint   `json:"id"`
+	Title string `json:"title"`
+	Logo  string `json:"logo"`
+}
