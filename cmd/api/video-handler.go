@@ -501,3 +501,21 @@ func (app *application) HandleGetComments(c *gin.Context) {
 		"has_next_page": hasNextPage,
 	})
 }
+
+// Get Channels
+func (app *application) HandleGetChannels(c *gin.Context) {
+	var channels []models.CustomChannel
+	userID := 1
+	channels, err := app.DB.GetChannels(userID)
+
+	if err != nil {
+		c.JSON(http.StatusNotFound, gin.H{
+			"error": "404 Channel not found!",
+		})
+		return
+	}
+
+	c.IndentedJSON(http.StatusOK, gin.H{
+		"channels": channels,
+	})
+}
