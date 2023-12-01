@@ -172,7 +172,7 @@ func (app *application) HandleGetRelatedVideos(c *gin.Context) {
 	}
 
 	var videos []models.VideoDTO
-	videos, err = app.DB.GetVideosByChannelID(id)
+	videos, _, err = app.DB.GetVideosByChannelID(id, 1, 24)
 
 	if err != nil {
 		c.IndentedJSON(http.StatusNotFound, gin.H{
