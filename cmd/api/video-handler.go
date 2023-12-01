@@ -519,3 +519,86 @@ func (app *application) HandleGetChannels(c *gin.Context) {
 		"channels": channels,
 	})
 }
+
+// get single channel with videos
+func (app *application) HandleGetChannel(c *gin.Context) {
+	chanID, err := strconv.Atoi(c.Params.ByName("channelID"))
+
+	if err != nil {
+		c.IndentedJSON(http.StatusNotFound, gin.H{
+			"error": "404 Channel not found!",
+		})
+		return
+	}
+
+	var channel *models.CustomChannelDTO
+	channel, err = app.DB.GetChannelByID(chanID)
+
+	if err != nil {
+		c.JSON(http.StatusNotFound, gin.H{
+			"error": "404 Channel not found!",
+		})
+		return
+	}
+
+	// Send the response
+	c.IndentedJSON(http.StatusOK, gin.H{
+		"channel": channel,
+	})
+}
+
+// get videos by channelID with pagination
+func (app *application) HandleGetVideosByChannelID(c *gin.Context) {
+	chanID, err := strconv.Atoi(c.Params.ByName("channelID"))
+
+	if err != nil {
+		c.IndentedJSON(http.StatusNotFound, gin.H{
+			"error": "404 Channel not found!",
+		})
+		return
+	}
+
+	var page, limit int
+	page, err = strconv.Atoi(c.DefaultQuery("page", "1"))
+	if err != nil {
+		c.JSON(http.StatusNotFound, gin.H{
+			"error": "404 video not found!",
+		})
+		return
+	}
+
+	limit, err = strconv.Atoi(c.DefaultQuery("limit", "10"))
+
+	if err != nil {
+		c.JSON(http.StatusNotFound, gin.H{
+			"error": "404 video not found!",
+		})
+		return
+	}
+
+	var videos []models.VideoDTO
+	var count int64
+	videos, count, err = app.DB.GetVideosByChannelID(chanID, page, limit)
+
+	if err != nil {
+		c.JSON(http.StatusNotFound, gin.H{
+			"error": "404 video not found!",
+		})
+		return
+	}
+
+	var hasNextPage bool
+
+	if count > int64(page*limit) {
+
+		hasNextPage = true
+	} else {
+		hasNextPage = false
+	}
+
+	c.IndentedJSON(http.StatusOK, gin.H{
+		"page":          page,
+		"videos":        videos,
+		"has_next_page": hasNextPage,
+	})
+}
