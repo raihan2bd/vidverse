@@ -108,3 +108,12 @@ type CustomChannel struct {
 	Title string `json:"title"`
 	Logo  string `json:"logo"`
 }
+
+type CustomChannelDTO struct {
+	ID              uint   `json:"id omitempty"`
+	Title           string `json:"title omitempty"`
+	Logo            string `json:"logo omitempty"`
+	Description     string `json:"description omitempty"`
+	TotalSubscriber int64  `json:"total_subscriber omitempty"`
+	TotalVideo      int64  `json:"total_video omitempty"`
+}
