@@ -108,19 +108,24 @@ func (m *postgresDBRepo) DeleteVideoByID(id int) error {
 	return nil
 }
 
-// Get related videos
-func (m *postgresDBRepo) GetVideosByChannelID(id int) ([]models.VideoDTO, error) {
+// Get videos by channelID including pagination
+func (m *postgresDBRepo) GetVideosByChannelID(id, page, limit int) ([]models.VideoDTO, int64, error) {
 	var videos []models.VideoDTO
+	var count int64
+	offset := (page - 1) * limit
+
 	err := m.DB.Table("videos").Select("videos.id, videos.title, videos.thumb, videos.views, channels.id as channel_id, channels.title as channel_title, channels.logo as channel_logo").
 		Joins("left join channels on channels.id = videos.channel_id").
 		Where("videos.channel_id = ?", id).
+		Count(&count).
+		Offset(offset).Limit(limit).
 		Order("videos.created_at asc").
 		Find(&videos).Error
 	if err != nil {
-		return nil, errors.New("internal server error. Please try again")
+		return nil, 0, errors.New("internal server error. Please try again")
 	}
 
-	return videos, nil
+	return videos, count, nil
 }
 
 // Get all comments
@@ -153,4 +158,22 @@ func (m *postgresDBRepo) GetChannels(userID int) ([]models.CustomChannel, error)
 	}
 
 	return channels, nil
+}
+
+// get channel details
+func (m *postgresDBRepo) GetChannelByID(id int) (*models.CustomChannelDTO, error) {
+	var channel models.CustomChannelDTO
+
+	err := m.DB.Table("channels").Select("channels.id, channels.title, channels.logo, channels.description, count(videos.id) as total_videos, count(subscriptions.id) as total_subscribers").
+		Joins("left join videos on videos.channel_id = channels.id").
+		Joins("left join subscriptions on subscriptions.channel_id = channels.id").
+		Where("channels.id = ?", id).
+		Group("channels.id").
+		Find(&channel).Error
+
+	if err != nil {
+		return nil, errors.New("internal server error. Please try again")
+	}
+
+	return &channel, nil
 }
