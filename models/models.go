@@ -45,6 +45,12 @@ type Channel struct {
 	Videos      []Video `gorm:"foreignKey:ChannelID" json:"videos"`
 }
 
+type Subscribe struct {
+	CustomModel
+	UserID    uint `json:"user_id"`
+	ChannelID uint `json:"channel_id"`
+}
+
 type ChannelPayload struct {
 	ID          uint   `json:"id"`
 	Title       string `gorm:"type:varchar(100)" json:"title,omitempty"`
