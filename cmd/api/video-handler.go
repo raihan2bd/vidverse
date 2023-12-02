@@ -61,15 +61,22 @@ func (app *application) HandleGetAllVideos(c *gin.Context) {
 	})
 }
 
-func UploadVideo(c *gin.Context) {
-	file, _, err := c.Request.FormFile("file")
+func (app *application) HandleCreateVideo(c *gin.Context) {
+	videoFile, fileInfo, err := c.Request.FormFile("video")
 	if err != nil {
-		c.IndentedJSON(400, gin.H{"error": err.Error()})
+		fmt.Println(err)
+		c.IndentedJSON(400, gin.H{"error": "File is required."})
 		return
 	}
-	defer file.Close()
+	defer videoFile.Close()
 
 	validator := validator.New()
+
+	// validate video
+	validator.IsVideo(fileInfo.Header.Get("Content-Type"), "video")
+	validator.IsVideoSize(fileInfo.Size, 100*1024*1024, "video")
+
+	// Todo: add image upload system later
 
 	title := c.PostForm("title")
 	description := c.PostForm("description")
@@ -92,7 +99,7 @@ func UploadVideo(c *gin.Context) {
 	ctx := context.Background()
 
 	// Upload the file to Cloudinary with specified folder and transformations
-	resp, err := initializers.CLD.Upload.Upload(ctx, file, uploader.UploadParams{
+	resp, err := initializers.CLD.Upload.Upload(ctx, videoFile, uploader.UploadParams{
 		Folder: folder,
 	})
 	if err != nil {
@@ -106,6 +113,7 @@ func UploadVideo(c *gin.Context) {
 	result := initializers.DB.Create(&video)
 
 	if result.Error != nil {
+		fmt.Println(result.Error)
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"message": "Failed to upload the video",
 		})

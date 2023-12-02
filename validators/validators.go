@@ -135,3 +135,17 @@ func (v *Validator) IsValidFullName(fullName, key string) {
 		v.AddError(key, "Invalid full name. Please enter a valid full name that contains only letters, spaces, and the following characters: ', . -")
 	}
 }
+
+// Validate Video Type
+func (v *Validator) IsVideo(videoType, key string) {
+	if videoType != "video/mp4" && videoType != "video/ogg" && videoType != "video/webm" && videoType != "video/3gp" && videoType != "video/mov" && videoType != "video/avi" && videoType != "video/wmv" && videoType != "video/flv" && videoType != "video/mkv" {
+		v.AddError(key, "Invalid video type. Please upload a valid video type")
+	}
+}
+
+// Validate Video Size
+func (v *Validator) IsVideoSize(videoSize, max int64, key string) {
+	if videoSize > max {
+		v.AddError(key, "Invalid video size. Please upload a valid video size. Maximum size is 10MB")
+	}
+}
