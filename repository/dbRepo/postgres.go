@@ -2,6 +2,7 @@ package dbrepo
 
 import (
 	"errors"
+	"fmt"
 
 	"github.com/raihan2bd/vidverse/models"
 	"gorm.io/gorm"
@@ -174,6 +175,8 @@ func (m *postgresDBRepo) GetChannelByID(id int) (*models.CustomChannelDTO, error
 	if err != nil {
 		return nil, errors.New("internal server error. Please try again")
 	}
+
+	fmt.Println("I'm working")
 
 	return &channel, nil
 }
