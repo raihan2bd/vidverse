@@ -3,7 +3,7 @@ package initializers
 import "github.com/raihan2bd/vidverse/models"
 
 func SyncDatabase() {
-	DB.AutoMigrate(&models.User{}, &models.Channel{}, &models.Video{}, &models.Like{}, &models.Comment{})
+	DB.AutoMigrate(&models.User{}, &models.Channel{}, &models.Video{}, &models.Like{}, &models.Comment{}, &models.Subscription{})
 	isSeeded := checkDatabaseSeed()
 	if !isSeeded {
 		seedUsers()
