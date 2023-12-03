@@ -45,10 +45,10 @@ type Channel struct {
 	Videos      []Video `gorm:"foreignKey:ChannelID" json:"videos"`
 }
 
-type Subscribe struct {
+type Subscription struct {
 	CustomModel
-	UserID    uint `json:"user_id"`
-	ChannelID uint `json:"channel_id"`
+	UserID    uint `gorm:"foreignKey:UserID" json:"user_id"`
+	ChannelID uint `gorm:"foreignKey:ChannelID" json:"channel_id"`
 }
 
 type ChannelPayload struct {
@@ -116,10 +116,10 @@ type CustomChannel struct {
 }
 
 type CustomChannelDTO struct {
-	ID              uint   `json:"id omitempty"`
-	Title           string `json:"title omitempty"`
-	Logo            string `json:"logo omitempty"`
-	Description     string `json:"description omitempty"`
-	TotalSubscriber int64  `json:"total_subscriber omitempty"`
-	TotalVideo      int64  `json:"total_video omitempty"`
+	ID              uint   `json:"id,omitempty"`
+	Title           string `json:"title,omitempty"`
+	Logo            string `json:"logo,omitempty"`
+	Description     string `json:"description,omitempty"`
+	TotalSubscriber int64  `json:"total_subscriber,omitempty"`
+	TotalVideo      int64  `json:"total_video,omitempty"`
 }
