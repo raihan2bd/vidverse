@@ -149,3 +149,17 @@ func (v *Validator) IsVideoSize(videoSize, max int64, key string) {
 		v.AddError(key, "Invalid video size. Please upload a valid video size. Maximum size is 10MB")
 	}
 }
+
+// Validate Image Type
+func (v *Validator) IsImage(imageType, key string) {
+	if imageType != "image/png" && imageType != "image/jpg" && imageType != "image/jpeg" {
+		v.AddError(key, "Invalid image type. Please upload a valid image type")
+	}
+}
+
+// Validate Image Size
+func (v *Validator) IsImageSize(imageSize, max int64, key string) {
+	if imageSize > max {
+		v.AddError(key, "Invalid image size. Please upload a valid image size. Maximum size is 5MB")
+	}
+}
