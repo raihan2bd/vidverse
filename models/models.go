@@ -37,12 +37,13 @@ type UserPayload struct {
 
 type Channel struct {
 	CustomModel
-	Title       string  `gorm:"type:varchar(100)" json:"title"`
-	Description string  `gorm:"type:text;size:500" json:"description"`
-	Logo        string  `gorm:"type:varchar(255);" json:"logo"`
-	UserID      uint    `json:"user_id"`
-	User        User    `gorm:"foreignKey:UserID" json:"user"`
-	Videos      []Video `gorm:"foreignKey:ChannelID" json:"videos"`
+	Title        string  `gorm:"type:varchar(100)" json:"title"`
+	Description  string  `gorm:"type:text;size:500" json:"description"`
+	Logo         string  `gorm:"type:varchar(255);" json:"logo"`
+	UserID       uint    `json:"user_id"`
+	LogoPublicID string  `gorm:"type:varchar(255);not null" json:"-"`
+	User         User    `gorm:"foreignKey:UserID" json:"user"`
+	Videos       []Video `gorm:"foreignKey:ChannelID" json:"videos"`
 }
 
 type Subscription struct {
