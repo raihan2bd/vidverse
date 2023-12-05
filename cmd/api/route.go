@@ -29,9 +29,11 @@ func (app *application) NewRouter() *gin.Engine {
 	v1.GET("/related_videos/:channelID", app.HandleGetRelatedVideos)
 	v1.GET("/comments/:videoID", app.HandleGetComments)
 	v1.GET("/file/video/:videoID", StreamVideoBuff)
+
 	v1.GET("/channels", app.HandleGetChannels)
 	v1.POST("/channels", app.HandleCreateChannel)
 	v1.GET("/channels/:channelID", app.HandleGetChannel)
+	v1.DELETE("/channels/:channelID", app.HandleDeleteChannel)
 
 	return r
 }
