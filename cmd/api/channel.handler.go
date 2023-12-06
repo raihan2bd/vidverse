@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"net/http"
+	"strconv"
 
 	"github.com/cloudinary/cloudinary-go/v2/api/uploader"
 	"github.com/gin-gonic/gin"
@@ -77,4 +78,26 @@ func (app *application) HandleCreateChannel(c *gin.Context) {
 
 	c.JSON(200, gin.H{"message": "Channel created successfully", "channel_id": channel.ID})
 
+}
+
+// delete channel
+func (app *application) HandleDeleteChannel(c *gin.Context) {
+	fmt.Println("Delete channel handler")
+	channelID, err := strconv.Atoi(c.Param("channelID"))
+
+	if err != nil {
+		c.JSON(400, gin.H{"error": "Invalid channel id"})
+		return
+	}
+
+	// delete channel
+	var deleteError *models.CustomError
+	deleteError = app.DB.DeleteChannelByID(channelID)
+
+	if deleteError != nil {
+		c.JSON(deleteError.Status, gin.H{"error": deleteError.Err.Error()})
+		return
+	}
+
+	c.JSON(200, gin.H{"message": "Channel deleted successfully"})
 }
