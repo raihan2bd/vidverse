@@ -1,9 +1,11 @@
 package dbrepo
 
 import (
+	"context"
 	"errors"
 	"fmt"
 
+	"github.com/cloudinary/cloudinary-go/v2/api/uploader"
 	"github.com/raihan2bd/vidverse/models"
 	"gorm.io/gorm"
 )
@@ -179,4 +181,36 @@ func (m *postgresDBRepo) GetChannelByID(id int) (*models.CustomChannelDTO, error
 	fmt.Println("I'm working")
 
 	return &channel, nil
+}
+
+// delete channel By Id
+func (m *postgresDBRepo) DeleteChannelByID(id int) *models.CustomError {
+	// get channel by id
+	var channel models.Channel
+	result := m.DB.First(&channel, id)
+
+	if result.Error != nil {
+		return &models.CustomError{Status: 404, Err: errors.New("the channel you want to delete is not found")}
+	}
+
+	// delete channel with transaction
+	tx := m.DB.Begin()
+	tx.Delete(&channel)
+
+	if tx.Error != nil {
+		tx.Rollback()
+		return &models.CustomError{Status: 500, Err: errors.New("failed to delete the channel")}
+	}
+
+	// delete the logoImage
+	_, err := m.CLD.Upload.Destroy(context.Background(), uploader.DestroyParams{PublicID: channel.LogoPublicID, ResourceType: "image"})
+
+	if err != nil {
+		tx.Rollback()
+		return &models.CustomError{Status: 500, Err: errors.New("failed to delete the channel")}
+	}
+
+	tx.Commit()
+
+	return nil
 }

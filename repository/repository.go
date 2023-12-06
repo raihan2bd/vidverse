@@ -13,6 +13,8 @@ type DatabaseRepo interface {
 	GetVideosByChannelID(id, page, limit int) ([]models.VideoDTO, int64, error)
 	DeleteVideoByID(id int) error
 	GetCommentsByVideoID(id, page, limit int) ([]models.CommentDTO, int64, error)
+
 	GetChannels(id int) ([]models.CustomChannel, error)
 	GetChannelByID(id int) (*models.CustomChannelDTO, error)
+	DeleteChannelByID(id int) *models.CustomError
 }
