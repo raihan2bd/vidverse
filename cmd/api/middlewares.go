@@ -6,7 +6,7 @@ import (
 )
 
 // pass the user_id if logged in
-func (app *application) HasToken(c *gin.Context) {
+func HasToken(c *gin.Context) {
 	token := c.Request.Header.Get("Authorization")
 	if token == "" {
 		c.Next()
@@ -29,7 +29,7 @@ func (app *application) HasToken(c *gin.Context) {
 	c.Next()
 }
 
-func (app *application) IsLoggedIn(c *gin.Context) {
+func IsLoggedIn(c *gin.Context) {
 	claims, err := helpers.DecodeToken(c.Request.Header.Get("Authorization"))
 
 	if err != nil {
@@ -46,7 +46,7 @@ func (app *application) IsLoggedIn(c *gin.Context) {
 	c.Next()
 }
 
-func (app *application) IsAdmin(c *gin.Context) {
+func IsAdmin(c *gin.Context) {
 	claims, err := helpers.DecodeToken(c.Request.Header.Get("Authorization"))
 
 	if err != nil {
