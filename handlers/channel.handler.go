@@ -1,4 +1,4 @@
-package main
+package handlers
 
 import (
 	"context"
@@ -13,8 +13,53 @@ import (
 	validator "github.com/raihan2bd/vidverse/validators"
 )
 
+// Get Channels
+func HandleGetChannels(c *gin.Context) {
+	var channels []models.CustomChannel
+	userID := 1
+	channels, err := app.DB.GetChannels(userID)
+
+	if err != nil {
+		c.JSON(http.StatusNotFound, gin.H{
+			"error": "404 Channel not found!",
+		})
+		return
+	}
+
+	c.IndentedJSON(http.StatusOK, gin.H{
+		"channels": channels,
+	})
+}
+
+// get single channel with videos
+func HandleGetChannel(c *gin.Context) {
+	chanID, err := strconv.Atoi(c.Params.ByName("channelID"))
+
+	if err != nil {
+		c.IndentedJSON(http.StatusNotFound, gin.H{
+			"error": "404 Channel not found!",
+		})
+		return
+	}
+
+	var channel *models.CustomChannelDTO
+	channel, err = app.DB.GetChannelByID(chanID)
+
+	if err != nil {
+		c.JSON(http.StatusNotFound, gin.H{
+			"error": "404 Channel not found!",
+		})
+		return
+	}
+
+	// Send the response
+	c.IndentedJSON(http.StatusOK, gin.H{
+		"channel": channel,
+	})
+}
+
 // create new channel
-func (app *application) HandleCreateChannel(c *gin.Context) {
+func HandleCreateChannel(c *gin.Context) {
 	fmt.Println("Create channel handler")
 	// get channel logo from form
 	channelLogo, logoHeader, err := c.Request.FormFile("logo")
@@ -81,7 +126,7 @@ func (app *application) HandleCreateChannel(c *gin.Context) {
 }
 
 // delete channel
-func (app *application) HandleDeleteChannel(c *gin.Context) {
+func HandleDeleteChannel(c *gin.Context) {
 	fmt.Println("Delete channel handler")
 	channelID, err := strconv.Atoi(c.Param("channelID"))
 

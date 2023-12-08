@@ -1,4 +1,4 @@
-package main
+package handlers
 
 import (
 	"log"
@@ -15,7 +15,7 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
-func (app *application) LoginHandler(c *gin.Context) {
+func LoginHandler(c *gin.Context) {
 	// Get user credentials from req body
 	type UserCreds struct {
 		Email    string `json:"email"`
@@ -98,10 +98,10 @@ func (app *application) LoginHandler(c *gin.Context) {
 
 }
 
-func (app *application) HandleMyAuthInfo(c *gin.Context) {
+func HandleMyAuthInfo(c *gin.Context) {
 }
 
-func (app *application) SignupHandler(c *gin.Context) {
+func SignupHandler(c *gin.Context) {
 	var payload models.UserPayload
 
 	if err := c.BindJSON(&payload); err != nil {

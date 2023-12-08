@@ -1,4 +1,4 @@
-package main
+package handlers
 
 import (
 	"context"
@@ -16,7 +16,7 @@ import (
 	validator "github.com/raihan2bd/vidverse/validators"
 )
 
-func (app *application) HandleGetAllVideos(c *gin.Context) {
+func HandleGetAllVideos(c *gin.Context) {
 	// search query
 	searchQuery := c.DefaultQuery("search", "")
 
@@ -61,7 +61,7 @@ func (app *application) HandleGetAllVideos(c *gin.Context) {
 	})
 }
 
-func (app *application) HandleCreateVideo(c *gin.Context) {
+func HandleCreateVideo(c *gin.Context) {
 	videoFile, fileInfo, err := c.Request.FormFile("video")
 	if err != nil {
 		fmt.Println(err)
@@ -124,7 +124,7 @@ func (app *application) HandleCreateVideo(c *gin.Context) {
 	c.JSON(200, gin.H{"message": "File uploaded successfully", "video_id": video.ID})
 }
 
-func (app *application) HandleGetSingleVideo(c *gin.Context) {
+func HandleGetSingleVideo(c *gin.Context) {
 	id, err := strconv.Atoi(c.Params.ByName("videoID"))
 	if err != nil {
 		c.IndentedJSON(http.StatusBadGateway, gin.H{
@@ -170,7 +170,7 @@ func (app *application) HandleGetSingleVideo(c *gin.Context) {
 }
 
 // Get related videos
-func (app *application) HandleGetRelatedVideos(c *gin.Context) {
+func HandleGetRelatedVideos(c *gin.Context) {
 	id, err := strconv.Atoi(c.Params.ByName("channelID"))
 	if err != nil {
 		c.IndentedJSON(http.StatusBadGateway, gin.H{
@@ -359,7 +359,7 @@ func StreamVideo(c *gin.Context) {
 }
 
 // Delete video
-func (app *application) HandleDeleteVidoe(c *gin.Context) {
+func HandleDeleteVidoe(c *gin.Context) {
 	id, err := strconv.Atoi(c.Params.ByName("videoID"))
 	if err != nil {
 		c.IndentedJSON(http.StatusNotFound, gin.H{
@@ -455,7 +455,7 @@ func (app *application) HandleDeleteVidoe(c *gin.Context) {
 // Upload file with cloudinary
 
 // Get comments
-func (app *application) HandleGetComments(c *gin.Context) {
+func HandleGetComments(c *gin.Context) {
 	id, err := strconv.Atoi(c.Params.ByName("videoID"))
 
 	if err != nil {
@@ -510,53 +510,8 @@ func (app *application) HandleGetComments(c *gin.Context) {
 	})
 }
 
-// Get Channels
-func (app *application) HandleGetChannels(c *gin.Context) {
-	var channels []models.CustomChannel
-	userID := 1
-	channels, err := app.DB.GetChannels(userID)
-
-	if err != nil {
-		c.JSON(http.StatusNotFound, gin.H{
-			"error": "404 Channel not found!",
-		})
-		return
-	}
-
-	c.IndentedJSON(http.StatusOK, gin.H{
-		"channels": channels,
-	})
-}
-
-// get single channel with videos
-func (app *application) HandleGetChannel(c *gin.Context) {
-	chanID, err := strconv.Atoi(c.Params.ByName("channelID"))
-
-	if err != nil {
-		c.IndentedJSON(http.StatusNotFound, gin.H{
-			"error": "404 Channel not found!",
-		})
-		return
-	}
-
-	var channel *models.CustomChannelDTO
-	channel, err = app.DB.GetChannelByID(chanID)
-
-	if err != nil {
-		c.JSON(http.StatusNotFound, gin.H{
-			"error": "404 Channel not found!",
-		})
-		return
-	}
-
-	// Send the response
-	c.IndentedJSON(http.StatusOK, gin.H{
-		"channel": channel,
-	})
-}
-
 // get videos by channelID with pagination
-func (app *application) HandleGetVideosByChannelID(c *gin.Context) {
+func HandleGetVideosByChannelID(c *gin.Context) {
 	chanID, err := strconv.Atoi(c.Params.ByName("channelID"))
 
 	if err != nil {
