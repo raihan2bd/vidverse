@@ -3,9 +3,10 @@ package main
 import (
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
+	"github.com/raihan2bd/vidverse/handlers"
 )
 
-func (app *application) NewRouter() *gin.Engine {
+func NewRouter() *gin.Engine {
 	r := gin.New()
 
 	config := cors.DefaultConfig()
@@ -15,25 +16,25 @@ func (app *application) NewRouter() *gin.Engine {
 	r.Use(cors.New(config))
 	r.Use(gin.Logger())
 
-	// r.Use(app.IsLoggedIn)
+	// r.Use(handlers.IsLoggedIn)
 	v1 := r.Group("/api/v1")
-	v1.GET("/", GetStatus)
-	v1.POST("/auth/login", app.LoginHandler)
-	v1.POST("/auth/signup", app.SignupHandler)
-	v1.GET("/videos", app.HandleGetAllVideos)
-	// v1.POST("/videos", app.IsAdmin, app.HandleCreateVideo)
-	v1.POST("/videos", app.HandleCreateVideo)
-	v1.GET("/get_videos/:channelID", app.HandleGetVideosByChannelID)
-	v1.GET("/videos/:videoID", app.HandleGetSingleVideo)
-	v1.DELETE("/videos/:videoID", app.HandleDeleteVidoe)
-	v1.GET("/related_videos/:channelID", app.HandleGetRelatedVideos)
-	v1.GET("/comments/:videoID", app.HandleGetComments)
-	v1.GET("/file/video/:videoID", StreamVideoBuff)
+	v1.GET("/", handlers.GetStatus)
+	v1.POST("/auth/login", handlers.LoginHandler)
+	v1.POST("/auth/signup", handlers.SignupHandler)
+	v1.GET("/videos", handlers.HandleGetAllVideos)
+	// v1.POST("/videos", handlers.IsAdmin, handlers.HandleCreateVideo)
+	v1.POST("/videos", handlers.HandleCreateVideo)
+	v1.GET("/get_videos/:channelID", handlers.HandleGetVideosByChannelID)
+	v1.GET("/videos/:videoID", handlers.HandleGetSingleVideo)
+	v1.DELETE("/videos/:videoID", handlers.HandleDeleteVidoe)
+	v1.GET("/related_videos/:channelID", handlers.HandleGetRelatedVideos)
+	v1.GET("/comments/:videoID", handlers.HandleGetComments)
+	v1.GET("/file/video/:videoID", handlers.StreamVideoBuff)
 
-	v1.GET("/channels", app.HandleGetChannels)
-	v1.POST("/channels", app.HandleCreateChannel)
-	v1.GET("/channels/:channelID", app.HandleGetChannel)
-	v1.DELETE("/channels/:channelID", app.HandleDeleteChannel)
+	v1.GET("/channels", handlers.HandleGetChannels)
+	v1.POST("/channels", handlers.HandleCreateChannel)
+	v1.GET("/channels/:channelID", handlers.HandleGetChannel)
+	v1.DELETE("/channels/:channelID", handlers.HandleDeleteChannel)
 
 	return r
 }
