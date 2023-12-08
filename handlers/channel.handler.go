@@ -14,10 +14,10 @@ import (
 )
 
 // Get Channels
-func HandleGetChannels(c *gin.Context) {
+func (m *Repo) HandleGetChannels(c *gin.Context) {
 	var channels []models.CustomChannel
 	userID := 1
-	channels, err := app.DB.GetChannels(userID)
+	channels, err := m.App.DBMethods.GetChannels(userID)
 
 	if err != nil {
 		c.JSON(http.StatusNotFound, gin.H{
@@ -32,7 +32,7 @@ func HandleGetChannels(c *gin.Context) {
 }
 
 // get single channel with videos
-func HandleGetChannel(c *gin.Context) {
+func (m *Repo) HandleGetChannel(c *gin.Context) {
 	chanID, err := strconv.Atoi(c.Params.ByName("channelID"))
 
 	if err != nil {
@@ -43,7 +43,7 @@ func HandleGetChannel(c *gin.Context) {
 	}
 
 	var channel *models.CustomChannelDTO
-	channel, err = app.DB.GetChannelByID(chanID)
+	channel, err = m.App.DBMethods.GetChannelByID(chanID)
 
 	if err != nil {
 		c.JSON(http.StatusNotFound, gin.H{
@@ -59,7 +59,7 @@ func HandleGetChannel(c *gin.Context) {
 }
 
 // create new channel
-func HandleCreateChannel(c *gin.Context) {
+func (m *Repo) HandleCreateChannel(c *gin.Context) {
 	fmt.Println("Create channel handler")
 	// get channel logo from form
 	channelLogo, logoHeader, err := c.Request.FormFile("logo")
@@ -126,7 +126,7 @@ func HandleCreateChannel(c *gin.Context) {
 }
 
 // delete channel
-func HandleDeleteChannel(c *gin.Context) {
+func (m *Repo) HandleDeleteChannel(c *gin.Context) {
 	fmt.Println("Delete channel handler")
 	channelID, err := strconv.Atoi(c.Param("channelID"))
 
@@ -136,8 +136,7 @@ func HandleDeleteChannel(c *gin.Context) {
 	}
 
 	// delete channel
-	var deleteError *models.CustomError
-	deleteError = app.DB.DeleteChannelByID(channelID)
+	deleteError := m.App.DBMethods.DeleteChannelByID(channelID)
 
 	if deleteError != nil {
 		c.JSON(deleteError.Status, gin.H{"error": deleteError.Err.Error()})

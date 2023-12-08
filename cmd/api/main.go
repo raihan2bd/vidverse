@@ -1,25 +1,32 @@
 package main
 
 import (
+	"log"
+
+	"github.com/joho/godotenv"
 	"github.com/raihan2bd/vidverse/config"
 	"github.com/raihan2bd/vidverse/handlers"
-	"github.com/raihan2bd/vidverse/initializers"
-	dbrepo "github.com/raihan2bd/vidverse/repository/dbRepo"
+	"github.com/raihan2bd/vidverse/handlers/websocket"
 )
 
-func init() {
-	initializers.LoadEnvVariables()
-	initializers.ConnectToDB()
-	initializers.ConnectToCloudinary()
-	initializers.SyncDatabase()
-}
+var app *config.Application
 
 func main() {
-	app := config.Application{}
-	repo := dbrepo.NewPostgresRepo(initializers.DB, initializers.CLD)
-	app.DB = repo
-	app.CLD = initializers.CLD
-	handlers.NewAPP(&app)
+	var err error
+
+	err = godotenv.Load()
+	if err != nil {
+		log.Fatal("Error loading .env file")
+	}
+
+	app, err = config.LoadConfig()
+	if err != nil {
+		panic(err)
+	}
+
+	repo := handlers.NewAPP(app)
+	handlers.NewHandler(repo)
+	websocket.NewAPP(app)
 	r := NewRouter()
 
 	r.Run()

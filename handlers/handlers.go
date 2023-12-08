@@ -7,13 +7,23 @@ import (
 	"github.com/raihan2bd/vidverse/config"
 )
 
-var app *config.Application
+var Methods *Repo
 
-func NewAPP(a *config.Application) {
-	app = a
+type Repo struct {
+	App *config.Application
 }
 
-func GetStatus(c *gin.Context) {
+func NewAPP(a *config.Application) *Repo {
+	return &Repo{
+		App: a,
+	}
+}
+
+func NewHandler(m *Repo) {
+	Methods = m
+}
+
+func (m *Repo) GetStatus(c *gin.Context) {
 	c.IndentedJSON(http.StatusOK, gin.H{
 		"status":      "Available",
 		"version":     "1.0.0",

@@ -16,7 +16,7 @@ import (
 	validator "github.com/raihan2bd/vidverse/validators"
 )
 
-func HandleGetAllVideos(c *gin.Context) {
+func (m *Repo) HandleGetAllVideos(c *gin.Context) {
 	// search query
 	searchQuery := c.DefaultQuery("search", "")
 
@@ -39,7 +39,7 @@ func HandleGetAllVideos(c *gin.Context) {
 	}
 
 	// Get all videos
-	videos, count, err := app.DB.GetAllVideos(page, limit, searchQuery)
+	videos, count, err := m.App.DBMethods.GetAllVideos(page, limit, searchQuery)
 	if err != nil {
 		c.IndentedJSON(http.StatusInternalServerError, gin.H{
 			"error": err,
@@ -61,7 +61,7 @@ func HandleGetAllVideos(c *gin.Context) {
 	})
 }
 
-func HandleCreateVideo(c *gin.Context) {
+func (m *Repo) HandleCreateVideo(c *gin.Context) {
 	videoFile, fileInfo, err := c.Request.FormFile("video")
 	if err != nil {
 		fmt.Println(err)
@@ -124,7 +124,7 @@ func HandleCreateVideo(c *gin.Context) {
 	c.JSON(200, gin.H{"message": "File uploaded successfully", "video_id": video.ID})
 }
 
-func HandleGetSingleVideo(c *gin.Context) {
+func (m *Repo) HandleGetSingleVideo(c *gin.Context) {
 	id, err := strconv.Atoi(c.Params.ByName("videoID"))
 	if err != nil {
 		c.IndentedJSON(http.StatusBadGateway, gin.H{
@@ -134,7 +134,7 @@ func HandleGetSingleVideo(c *gin.Context) {
 	}
 	var video *models.Video
 	if id > 0 {
-		video, err = app.DB.GetVideoByID(id)
+		video, err = m.App.DBMethods.GetVideoByID(id)
 
 		if err != nil {
 			c.JSON(http.StatusNotFound, gin.H{
@@ -170,7 +170,7 @@ func HandleGetSingleVideo(c *gin.Context) {
 }
 
 // Get related videos
-func HandleGetRelatedVideos(c *gin.Context) {
+func (m *Repo) HandleGetRelatedVideos(c *gin.Context) {
 	id, err := strconv.Atoi(c.Params.ByName("channelID"))
 	if err != nil {
 		c.IndentedJSON(http.StatusBadGateway, gin.H{
@@ -180,7 +180,7 @@ func HandleGetRelatedVideos(c *gin.Context) {
 	}
 
 	var videos []models.VideoDTO
-	videos, _, err = app.DB.GetVideosByChannelID(id, 1, 24)
+	videos, _, err = m.App.DBMethods.GetVideosByChannelID(id, 1, 24)
 
 	if err != nil {
 		c.IndentedJSON(http.StatusNotFound, gin.H{
@@ -190,7 +190,7 @@ func HandleGetRelatedVideos(c *gin.Context) {
 	}
 
 	if len(videos) == 0 {
-		videos, _, err = app.DB.GetAllVideos(1, 24, "")
+		videos, _, err = m.App.DBMethods.GetAllVideos(1, 24, "")
 		if err != nil {
 			c.IndentedJSON(http.StatusInternalServerError, gin.H{
 				"error": err,
@@ -204,7 +204,7 @@ func HandleGetRelatedVideos(c *gin.Context) {
 	})
 }
 
-func StreamVideoBuff(c *gin.Context) {
+func (m *Repo) StreamVideoBuff(c *gin.Context) {
 	filename := filepath.Join("./uploads/videos", "./test.mp4")
 	videoFile, err := os.Open(filename)
 	if err != nil {
@@ -273,7 +273,7 @@ func StreamVideoBuff(c *gin.Context) {
 	}
 }
 
-// func StreamVideo(c *gin.Context) {
+// func (m *Repo) StreamVideo(c *gin.Context) {
 // 	id, err := strconv.Atoi(c.Params.ByName("videoID"))
 // 	if err != nil {
 // 		c.JSON(http.StatusNotFound, gin.H{
@@ -319,7 +319,7 @@ func StreamVideoBuff(c *gin.Context) {
 // 	}
 // }
 
-func StreamVideo(c *gin.Context) {
+func (m *Repo) StreamVideo(c *gin.Context) {
 	id, err := strconv.Atoi(c.Param("videoID")) // Use c.Param instead of c.Params.ByName
 	if err != nil {
 		c.JSON(http.StatusNotFound, gin.H{
@@ -359,7 +359,7 @@ func StreamVideo(c *gin.Context) {
 }
 
 // Delete video
-func HandleDeleteVidoe(c *gin.Context) {
+func (m *Repo) HandleDeleteVidoe(c *gin.Context) {
 	id, err := strconv.Atoi(c.Params.ByName("videoID"))
 	if err != nil {
 		c.IndentedJSON(http.StatusNotFound, gin.H{
@@ -390,7 +390,7 @@ func HandleDeleteVidoe(c *gin.Context) {
 	}
 
 	// delete the video
-	err = app.DB.DeleteVideoByID(id)
+	err = m.App.DBMethods.DeleteVideoByID(id)
 	if err != nil {
 		c.IndentedJSON(http.StatusNotFound, gin.H{
 			"error": "something went wrong. failed to delete the video",
@@ -404,7 +404,7 @@ func HandleDeleteVidoe(c *gin.Context) {
 
 }
 
-// func UploadVideo(c *gin.Context) {
+// func (m *Repo) UploadVideo(c *gin.Context) {
 // 	file, header, err := c.Request.FormFile("file")
 // 	if err != nil {
 // 		c.IndentedJSON(400, gin.H{"error": err.Error()})
@@ -455,7 +455,7 @@ func HandleDeleteVidoe(c *gin.Context) {
 // Upload file with cloudinary
 
 // Get comments
-func HandleGetComments(c *gin.Context) {
+func (m *Repo) HandleGetComments(c *gin.Context) {
 	id, err := strconv.Atoi(c.Params.ByName("videoID"))
 
 	if err != nil {
@@ -486,7 +486,7 @@ func HandleGetComments(c *gin.Context) {
 
 	var comments []models.CommentDTO
 	var count int64
-	comments, count, err = app.DB.GetCommentsByVideoID(id, page, limit)
+	comments, count, err = m.App.DBMethods.GetCommentsByVideoID(id, page, limit)
 
 	if err != nil {
 		c.JSON(http.StatusNotFound, gin.H{
@@ -511,7 +511,7 @@ func HandleGetComments(c *gin.Context) {
 }
 
 // get videos by channelID with pagination
-func HandleGetVideosByChannelID(c *gin.Context) {
+func (m *Repo) HandleGetVideosByChannelID(c *gin.Context) {
 	chanID, err := strconv.Atoi(c.Params.ByName("channelID"))
 
 	if err != nil {
@@ -541,7 +541,7 @@ func HandleGetVideosByChannelID(c *gin.Context) {
 
 	var videos []models.VideoDTO
 	var count int64
-	videos, count, err = app.DB.GetVideosByChannelID(chanID, page, limit)
+	videos, count, err = m.App.DBMethods.GetVideosByChannelID(chanID, page, limit)
 
 	if err != nil {
 		c.JSON(http.StatusNotFound, gin.H{

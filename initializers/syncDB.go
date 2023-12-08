@@ -1,17 +1,31 @@
 package initializers
 
-import "github.com/raihan2bd/vidverse/models"
+import (
+	"log"
 
-func SyncDatabase() {
-	DB.AutoMigrate(&models.User{}, &models.Channel{}, &models.Video{}, &models.Like{}, &models.Comment{}, &models.Subscription{})
-	isSeeded := checkDatabaseSeed()
-	if !isSeeded {
-		seedUsers()
-		seedChannels()
-		seedVideos()
-		seedLikes()
-		seedComments()
+	"errors"
+
+	"github.com/raihan2bd/vidverse/models"
+)
+
+func SyncDatabase() error {
+	err := DB.AutoMigrate(&models.User{}, &models.Channel{}, &models.Video{}, &models.Like{}, &models.Comment{}, &models.Subscription{})
+
+	if err != nil {
+		log.Println(err)
+		return errors.New("failed to sync database")
 	}
+
+	return nil
+
+	// isSeeded := checkDatabaseSeed()
+	// if !isSeeded {
+	// 	seedUsers()
+	// 	seedChannels()
+	// 	seedVideos()
+	// 	seedLikes()
+	// 	seedComments()
+	// }
 }
 
 func checkDatabaseSeed() bool {

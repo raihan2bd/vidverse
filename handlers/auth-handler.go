@@ -15,7 +15,7 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
-func LoginHandler(c *gin.Context) {
+func (m *Repo) LoginHandler(c *gin.Context) {
 	// Get user credentials from req body
 	type UserCreds struct {
 		Email    string `json:"email"`
@@ -30,7 +30,7 @@ func LoginHandler(c *gin.Context) {
 		return
 	}
 
-	user, _ := app.DB.GetUserByEmail(payload.Email)
+	user, _ := m.App.DBMethods.GetUserByEmail(payload.Email)
 
 	if user == nil {
 		c.IndentedJSON(http.StatusUnauthorized, gin.H{
@@ -98,10 +98,10 @@ func LoginHandler(c *gin.Context) {
 
 }
 
-func HandleMyAuthInfo(c *gin.Context) {
+func (m *Repo) HandleMyAuthInfo(c *gin.Context) {
 }
 
-func SignupHandler(c *gin.Context) {
+func (m *Repo) SignupHandler(c *gin.Context) {
 	var payload models.UserPayload
 
 	if err := c.BindJSON(&payload); err != nil {
@@ -146,7 +146,7 @@ func SignupHandler(c *gin.Context) {
 	}
 
 	// check username is exist
-	user, _ := app.DB.GetUserByUsername(payload.UserName)
+	user, _ := m.App.DBMethods.GetUserByUsername(payload.UserName)
 	if user != nil {
 		c.IndentedJSON(http.StatusBadRequest, gin.H{
 			"error": "username is already taken. please try another one",
@@ -155,7 +155,7 @@ func SignupHandler(c *gin.Context) {
 	}
 
 	// check email is exist
-	user, _ = app.DB.GetUserByEmail(payload.Email)
+	user, _ = m.App.DBMethods.GetUserByEmail(payload.Email)
 	if user != nil {
 		c.IndentedJSON(http.StatusBadRequest, gin.H{
 			"error": "email address is already exist. please try another one",
@@ -180,7 +180,7 @@ func SignupHandler(c *gin.Context) {
 		Email:    payload.Email,
 	}
 
-	id, err := app.DB.CreateNewUser(&newUser)
+	id, err := m.App.DBMethods.CreateNewUser(&newUser)
 	if err != nil {
 		c.IndentedJSON(http.StatusInternalServerError, gin.H{
 			"error": err,

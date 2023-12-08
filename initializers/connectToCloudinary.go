@@ -1,6 +1,8 @@
 package initializers
 
 import (
+	"errors"
+	"log"
 	"os"
 
 	"github.com/cloudinary/cloudinary-go/v2"
@@ -8,11 +10,14 @@ import (
 
 var CLD *cloudinary.Cloudinary
 
-func ConnectToCloudinary() {
+func ConnectToCloudinary() (*cloudinary.Cloudinary, error) {
 	cld, err := cloudinary.NewFromURL(os.Getenv("CLD_URI"))
 
 	if err != nil {
-		panic("failed to intialize Cloudinary")
+		log.Println(err)
+		return nil, errors.New("failed to intialize Cloudinary")
 	}
 	CLD = cld
+
+	return cld, nil
 }
