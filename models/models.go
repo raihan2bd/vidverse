@@ -124,3 +124,15 @@ type CustomChannelDTO struct {
 	TotalSubscriber int64  `json:"total_subscriber,omitempty"`
 	TotalVideo      int64  `json:"total_video,omitempty"`
 }
+
+type Notification struct {
+	CustomModel
+	IsRead     bool   `gorm:"type:boolean;not null;default:false" json:"is_read"`
+	ReceiverID uint   `gorm:"foreignKey:UserID; not null;" json:"receiver_id"`
+	SenderID   uint   `gorm:"foreignKey:UserID; not null;" json:"sender_id"`
+	SenderName string `gorm:"type:varchar(100);not null;" json:"sender_name"`
+	VideoID    uint   `gorm:"foreignKey:VideoID" json:"video_id,omitempty"`
+	ChannelID  uint   `gorm:"foreignKey:ChannelID" json:"channel_id,omitempty"`
+	CommentID  uint   `gorm:"foreignKey:CommentID" json:"comment_id,omitempty"`
+	LikeID     uint   `gorm:"foreignKey:LikeID" json:"like_id,omitempty"`
+}
