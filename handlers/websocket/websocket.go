@@ -1,9 +1,27 @@
 package websocket
 
-import "github.com/raihan2bd/vidverse/config"
+import (
+	"github.com/gin-gonic/gin"
+	"github.com/raihan2bd/vidverse/config"
+)
 
-var app *config.Application
+type Repo struct {
+	App *config.Application
+}
 
-func NewAPP(a *config.Application) {
-	app = a
+var Methods *Repo
+
+func NewAPP(a *config.Application) *Repo {
+	return &Repo{
+		App: a,
+	}
+}
+
+func NewSocket(m *Repo) {
+	Methods = m
+}
+
+// handle websocket request
+func (m *Repo) WSHandler(c *gin.Context) {
+
 }

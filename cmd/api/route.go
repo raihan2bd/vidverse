@@ -4,6 +4,7 @@ import (
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"github.com/raihan2bd/vidverse/handlers"
+	"github.com/raihan2bd/vidverse/handlers/websocket"
 )
 
 func NewRouter() *gin.Engine {
@@ -35,6 +36,9 @@ func NewRouter() *gin.Engine {
 	v1.POST("/channels", handlers.Methods.HandleCreateChannel)
 	v1.GET("/channels/:channelID", handlers.Methods.HandleGetChannel)
 	v1.DELETE("/channels/:channelID", handlers.Methods.HandleDeleteChannel)
+
+	// websocket handler
+	v1.GET("/ws", websocket.Methods.WSHandler)
 
 	return r
 }
