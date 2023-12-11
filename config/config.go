@@ -9,9 +9,16 @@ import (
 )
 
 type Application struct {
-	DB        *gorm.DB
-	CLD       *cloudinary.Cloudinary
-	DBMethods repository.DatabaseRepo
+	DB               *gorm.DB
+	CLD              *cloudinary.Cloudinary
+	DBMethods        repository.DatabaseRepo
+	NotificationChan chan *NotificationEvent
+}
+
+type NotificationEvent struct {
+	BroadcasterID uint
+	Action        string
+	Data          interface{}
 }
 
 func LoadConfig() (*Application, error) {
@@ -37,8 +44,9 @@ func LoadConfig() (*Application, error) {
 	}
 
 	return &Application{
-		DB:        db,
-		DBMethods: dbrepo.NewPostgresRepo(initializers.DB, initializers.CLD),
-		CLD:       cld,
+		DB:               db,
+		DBMethods:        dbrepo.NewPostgresRepo(initializers.DB, initializers.CLD),
+		CLD:              cld,
+		NotificationChan: make(chan *NotificationEvent),
 	}, nil
 }
