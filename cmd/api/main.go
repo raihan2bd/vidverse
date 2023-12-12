@@ -28,6 +28,7 @@ func main() {
 	handlers.NewHandler(repo)
 	socketRepo := websocket.NewAPP(app)
 	websocket.NewSocket(socketRepo)
+	go websocket.Methods.HandleMessages()
 	r := NewRouter()
 
 	r.Run()
