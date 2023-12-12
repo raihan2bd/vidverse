@@ -1,6 +1,8 @@
 package websocket
 
 import (
+	"fmt"
+	"net/http"
 	"sync"
 
 	"github.com/gin-gonic/gin"
@@ -31,6 +33,12 @@ type Clients struct {
 	m map[uint]*websocket.Conn
 }
 
+var upgradeConnection = websocket.Upgrader{
+	ReadBufferSize:  1024,
+	WriteBufferSize: 1024,
+	CheckOrigin:     func(r *http.Request) bool { return true },
+}
+
 func (c *Clients) Add(userID uint, conn *websocket.Conn) {
 	c.Lock()
 	defer c.Unlock()
@@ -49,24 +57,30 @@ func (c *Clients) Get(userID uint) *websocket.Conn {
 	return c.m[userID]
 }
 
+type WsPayload struct {
+	Action string      `json:"action"`
+	Data   interface{} `json:"data"`
+}
+
 // handle websocket request
 func (m *Repo) WSHandler(c *gin.Context) {
 	// Upgrade HTTP connection to WebSocket
-	upgrader := websocket.Upgrader{}
-	conn, err := upgrader.Upgrade(c.Writer, c.Request, nil)
+	fmt.Println("WSHandler")
+	conn, err := upgradeConnection.Upgrade(c.Writer, c.Request, nil)
 	if err != nil {
 		c.JSON(400, gin.H{"error": err.Error()})
 		return
 	}
 
 	// Extract user ID from context or request
-	userID := uint(1) // Extract user ID using appropriate method
+	userID := uint(1)
 
 	// Add client to map
 	m.Clients.Add(userID, conn)
 
 	// Send connection event message
-	m.App.NotificationChan <- &config.NotificationEvent{BroadcasterID: userID, Action: "connect"}
+	m.App.NotificationChan <- &config.NotificationEvent{BroadcasterID: userID, Action: "message", Data: "connected"}
+	// conn.WriteJSON(WsPayload{Action: "connect", Data: "connected"})
 
 	go func() {
 		defer func() {
@@ -75,45 +89,41 @@ func (m *Repo) WSHandler(c *gin.Context) {
 			m.App.NotificationChan <- &config.NotificationEvent{BroadcasterID: userID, Action: "disconnect"}
 		}()
 
+		var payload WsPayload
+
 		for {
-			messageType, message, err := conn.ReadMessage()
+			err := conn.ReadJSON(&payload)
 			if err != nil {
 				// Handle error and send disconnect event
-				m.MessageCh <- &MessageEvent{userID: userID, conn: conn, action: "disconnect", err: err}
+				m.App.NotificationChan <- &config.NotificationEvent{BroadcasterID: userID, Action: "disconnect"}
 				break
 			}
 
-			// Handle message based on type
-			// ...
-
-			// Broadcast message to other users
-			// ...
+			fmt.Println("payload", payload)
 
 			// Send message event
-			m.MessageCh <- &MessageEvent{userID: userID, conn: conn, action: "message", data: message}
+			m.App.NotificationChan <- &config.NotificationEvent{BroadcasterID: userID, Data: payload, Action: payload.Action}
 		}
 	}()
 }
 
 func (m *Repo) HandleMessages() {
 	for {
-		select {
-		case message := <-m.MessageCh:
-			switch message.action {
-			case "connect":
-				// Handle connection establishment
-				// ...
-
-			case "message":
-				// Handle received message
-				// ...
-
-			case "disconnect":
-				// Handle client disconnect
-				// ...
-			}
-		default:
-			// Optionally: add code to perform background tasks
+		event := <-m.App.NotificationChan
+		switch event.Action {
+		case "connect":
+			// get clients conn from map using broadcasterID
+			conn := m.Clients.Get(event.BroadcasterID)
+			conn.WriteJSON(WsPayload{Action: "connect", Data: "connected"})
+		case "message":
+			// get clients conn from map using broadcasterID
+			conn := m.Clients.Get(event.BroadcasterID)
+			// Send message to client
+			conn.WriteJSON(WsPayload{Action: event.Action, Data: event.Data})
+		case "disconnect":
+			// Handle client disconnect
+			m.Clients.Remove(event.BroadcasterID)
 		}
 	}
+
 }
