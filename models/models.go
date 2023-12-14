@@ -135,4 +135,5 @@ type Notification struct {
 	ChannelID  uint   `gorm:"foreignKey:ChannelID" json:"channel_id,omitempty"`
 	CommentID  uint   `gorm:"foreignKey:CommentID" json:"comment_id,omitempty"`
 	LikeID     uint   `gorm:"foreignKey:LikeID" json:"like_id,omitempty"`
+	Type       string `gorm:"type:varchar(100);not null;" json:"type"`
 }
