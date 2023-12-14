@@ -11,6 +11,7 @@ import (
 
 	"github.com/cloudinary/cloudinary-go/v2/api/uploader"
 	"github.com/gin-gonic/gin"
+	"github.com/raihan2bd/vidverse/config"
 	"github.com/raihan2bd/vidverse/initializers"
 	"github.com/raihan2bd/vidverse/models"
 	validator "github.com/raihan2bd/vidverse/validators"
@@ -564,4 +565,96 @@ func (m *Repo) HandleGetVideosByChannelID(c *gin.Context) {
 		"videos":        videos,
 		"has_next_page": hasNextPage,
 	})
+}
+
+// Handle Video Like
+func (m *Repo) HandleVideoLike(c *gin.Context) {
+	// Get Video ID
+	videoID, err := strconv.Atoi(c.Params.ByName("videoID"))
+	if err != nil {
+		c.JSON(http.StatusNotFound, gin.H{
+			"error": "404 video not found!",
+		})
+		return
+	}
+
+	// Get User ID
+	userID := uint(1) //Todo: get user id from context
+
+	// check the user is available or not
+	user, err := m.App.DBMethods.GetUserByID(userID)
+	if err != nil {
+		c.JSON(http.StatusUnauthorized, gin.H{
+			"error": "Access denied!",
+		})
+		return
+	}
+
+	// Check the video is available or not
+	video, err := m.App.DBMethods.GetVideoByID(videoID)
+
+	if err != nil {
+		c.JSON(http.StatusNotFound, gin.H{
+			"error": "404 video not found!",
+		})
+		return
+	}
+
+	if video.ID == 0 {
+		c.JSON(http.StatusNotFound, gin.H{
+			"error": "404 video not found!",
+		})
+	}
+
+	// Check the video is already liked by the user or not
+	var like *models.Like
+	like, err = m.App.DBMethods.GetLikeByVideoIDAndUserID(uint(videoID), userID)
+
+	if err != nil {
+		like.UserID = userID
+		like.VideoID = uint(videoID)
+
+		// Create a new like
+		id, err := m.App.DBMethods.CreateLike(like)
+
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{
+				"error": "Failed to like the video",
+			})
+			return
+		}
+
+		c.JSON(http.StatusOK, gin.H{
+			"message": "Successfully liked the video",
+			"like_id": id,
+		})
+
+		// send notification to the video owner
+		ownerID := video.Channel.UserID
+		notification := models.Notification{LikeID: id, Type: "like", VideoID: uint(videoID), SenderID: userID, ReceiverID: ownerID, SenderName: user.UserName, IsRead: false}
+
+		err = m.App.DBMethods.CreateNotification(&notification)
+
+		if err == nil {
+			// send notification to the user
+			m.App.NotificationChan <- &config.NotificationEvent{BroadcasterID: ownerID, Action: "a_new_notification", Data: notification}
+		}
+
+		return
+	}
+
+	// Delete the like
+	err = m.App.DBMethods.DeleteLikeByID(like.ID)
+
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": "Failed to unlike the video",
+		})
+		return
+	}
+
+	c.JSON(http.StatusCreated, gin.H{
+		"message": "Successfully unliked the video",
+	})
+
 }
