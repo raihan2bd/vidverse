@@ -39,6 +39,19 @@ func (m *postgresDBRepo) GetUserByEmail(email string) (*models.User, error) {
 	return nil, errors.New("404 user not found")
 }
 
+// Get user by ID
+func (m *postgresDBRepo) GetUserByID(id uint) (*models.User, error) {
+	var user models.User
+	result := m.DB.First(&user, id)
+	if result.Error != nil {
+		return nil, errors.New("404 user not found")
+	}
+
+	user.Password = ""
+
+	return &user, nil
+}
+
 // create new user
 func (m *postgresDBRepo) CreateNewUser(user *models.User) (int, error) {
 	result := m.DB.Create(&user)
@@ -211,6 +224,51 @@ func (m *postgresDBRepo) DeleteChannelByID(id int) *models.CustomError {
 	}
 
 	tx.Commit()
+
+	return nil
+}
+
+// Get like by videoID and userID
+func (m *postgresDBRepo) GetLikeByVideoIDAndUserID(videoID, userID uint) (*models.Like, error) {
+	var like models.Like
+	err := m.DB.Where("video_id = ? AND user_id = ?", videoID, userID).First(&like).Error
+	if err != nil {
+		return nil, errors.New("404 like not found")
+	}
+
+	if like.ID == 0 {
+		return nil, errors.New("404 like not found")
+	}
+
+	return &like, nil
+}
+
+// create like
+func (m *postgresDBRepo) CreateLike(like *models.Like) (uint, error) {
+	result := m.DB.Create(&like)
+	if result.Error != nil {
+		return 0, errors.New("failed to create like")
+	}
+
+	return like.ID, nil
+}
+
+// Delete like by ID
+func (m *postgresDBRepo) DeleteLikeByID(id uint) error {
+	result := m.DB.Unscoped().Delete(&models.Like{}, id)
+	if result.Error != nil {
+		return errors.New("something went wrong. failed to delete the like")
+	}
+
+	return nil
+}
+
+// create notification
+func (m *postgresDBRepo) CreateNotification(notification *models.Notification) error {
+	result := m.DB.Create(&notification)
+	if result.Error != nil {
+		return errors.New("failed to create notification")
+	}
 
 	return nil
 }

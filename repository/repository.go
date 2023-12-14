@@ -6,6 +6,7 @@ type DatabaseRepo interface {
 	CreateNewUser(user *models.User) (int, error)
 	GetUserByUsername(username string) (*models.User, error)
 	GetUserByEmail(email string) (*models.User, error)
+	GetUserByID(id uint) (*models.User, error)
 
 	GetAllVideos(page, limit int, searchQuery string) ([]models.VideoDTO, int64, error)
 	GetTotalVideosCount(searchQuery string) (int64, error)
@@ -17,4 +18,10 @@ type DatabaseRepo interface {
 	GetChannels(id int) ([]models.CustomChannel, error)
 	GetChannelByID(id int) (*models.CustomChannelDTO, error)
 	DeleteChannelByID(id int) *models.CustomError
+
+	GetLikeByVideoIDAndUserID(videoID, userID uint) (*models.Like, error)
+	CreateLike(like *models.Like) (uint, error)
+	DeleteLikeByID(id uint) error
+
+	CreateNotification(notification *models.Notification) error
 }
