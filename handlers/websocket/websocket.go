@@ -115,11 +115,17 @@ func (m *Repo) HandleMessages() {
 			// get clients conn from map using broadcasterID
 			conn := m.Clients.Get(event.BroadcasterID)
 			conn.WriteJSON(WsPayload{Action: "connect", Data: "connected"})
+
+		case "a_new_notification":
+			conn := m.Clients.Get(event.BroadcasterID)
+			conn.WriteJSON(WsPayload{Action: event.Action, Data: event.Data})
+
 		case "message":
 			// get clients conn from map using broadcasterID
 			conn := m.Clients.Get(event.BroadcasterID)
 			// Send message to client
 			conn.WriteJSON(WsPayload{Action: event.Action, Data: event.Data})
+
 		case "disconnect":
 			// Handle client disconnect
 			m.Clients.Remove(event.BroadcasterID)
