@@ -9,7 +9,7 @@ import (
 )
 
 func SyncDatabase() error {
-	err := DB.AutoMigrate(&models.User{}, &models.Channel{}, &models.Video{}, &models.Like{}, &models.Comment{}, &models.Subscription{})
+	err := DB.AutoMigrate(&models.User{}, &models.Channel{}, &models.Video{}, &models.Like{}, &models.Comment{}, &models.Subscription{}, &models.Notification{})
 
 	if err != nil {
 		log.Println(err)
