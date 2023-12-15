@@ -8,6 +8,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/gorilla/websocket"
 	"github.com/raihan2bd/vidverse/config"
+	"github.com/raihan2bd/vidverse/helpers"
 )
 
 type Repo struct {
@@ -62,18 +63,43 @@ type WsPayload struct {
 	Data   interface{} `json:"data"`
 }
 
+type ErrorRes struct {
+	Error  string `json:"error,omitempty"`
+	Status int    `json:"status,omitempty"`
+}
+
 // handle websocket request
 func (m *Repo) WSHandler(c *gin.Context) {
+
 	// Upgrade HTTP connection to WebSocket
-	fmt.Println("WSHandler")
 	conn, err := upgradeConnection.Upgrade(c.Writer, c.Request, nil)
 	if err != nil {
-		c.JSON(400, gin.H{"error": err.Error()})
 		return
 	}
 
 	// Extract user ID from context or request
-	userID := uint(1)
+	tokenString := c.Query("token")
+	if tokenString == "" {
+		conn.WriteJSON(WsPayload{Action: "error", Data: ErrorRes{Error: "Unauthorized", Status: http.StatusUnauthorized}})
+		conn.Close()
+		return
+	}
+
+	// validate token
+	token, err := helpers.DecodeToken(tokenString)
+	if err != nil {
+		conn.WriteJSON(WsPayload{Action: "error", Data: ErrorRes{Error: "Unauthorized", Status: http.StatusUnauthorized}})
+		conn.Close()
+		return
+	}
+
+	if !helpers.ValidateToken(token) {
+		conn.WriteJSON(WsPayload{Action: "error", Data: ErrorRes{Error: "Unauthorized", Status: http.StatusUnauthorized}})
+		conn.Close()
+		return
+	}
+
+	userID := token["sub"].(uint)
 
 	// Add client to map
 	m.Clients.Add(userID, conn)
