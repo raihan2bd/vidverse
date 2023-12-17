@@ -65,6 +65,7 @@ func ValidateAndGetUserByID(app *config.Application, id any) (*models.User, erro
 	if user.ID <= 0 {
 		return nil, errors.New("invalid User")
 	}
+	user.Password = ""
 
 	return user, nil
 }

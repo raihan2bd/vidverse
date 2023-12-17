@@ -5,6 +5,7 @@ import (
 	"strconv"
 
 	"github.com/gin-gonic/gin"
+	"github.com/raihan2bd/vidverse/config"
 	"github.com/raihan2bd/vidverse/helpers"
 	"github.com/raihan2bd/vidverse/models"
 	validator "github.com/raihan2bd/vidverse/validators"
@@ -107,7 +108,7 @@ func (m *Repo) HandleCreateOrUpdateComment(c *gin.Context) {
 		return
 	}
 
-	_, err = m.App.DBMethods.GetVideoByID(int(payload.VideoID))
+	video, err := m.App.DBMethods.GetVideoByID(int(payload.VideoID))
 	if err != nil {
 		c.IndentedJSON(400, gin.H{
 			"error": "Invalid Video ID",
@@ -119,7 +120,7 @@ func (m *Repo) HandleCreateOrUpdateComment(c *gin.Context) {
 	validator := validator.New()
 	validator.IsLength(payload.Text, "text", 2, 1000)
 
-	if validator.Valid() == false {
+	if validator.Valid() {
 		c.IndentedJSON(400, gin.H{
 			"error": validator.GetErrMsg(),
 		})
@@ -178,6 +179,27 @@ func (m *Repo) HandleCreateOrUpdateComment(c *gin.Context) {
 			"message": "Comment created successfully",
 			"id":      comment_id,
 		})
+
+		// send notification to the video owner
+		notification := models.Notification{
+			ReceiverID: video.Channel.UserID,
+			VideoID:    video.ID,
+			CommentID:  comment_id,
+			IsRead:     false,
+			Type:       "comment",
+		}
+
+		err = m.App.DBMethods.CreateNotification(&notification)
+		if err != nil {
+			return
+		}
+
+		// send notification to the comment owner
+		m.App.NotificationChan <- &config.NotificationEvent{
+			BroadcasterID: user.ID,
+			Action:        "a_new_notification",
+			Data:          notification,
+		}
 
 		return
 	}
