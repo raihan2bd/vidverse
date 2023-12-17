@@ -1,11 +1,14 @@
 package helpers
 
 import (
+	"errors"
 	"fmt"
 	"os"
 	"time"
 
 	"github.com/golang-jwt/jwt/v5"
+	"github.com/raihan2bd/vidverse/config"
+	"github.com/raihan2bd/vidverse/models"
 )
 
 // Decode the token
@@ -45,4 +48,23 @@ func ValidateToken(claims jwt.MapClaims) bool {
 	}
 
 	return true
+}
+
+// Validate user_id and convert to uint
+func ValidateAndGetUserByID(app *config.Application, id any) (*models.User, error) {
+	userID, ok := id.(uint)
+	if !ok {
+		return nil, errors.New("invalid User")
+	}
+
+	user, err := app.DBMethods.GetUserByID(userID)
+	if err != nil {
+		return nil, errors.New("invalid User")
+	}
+
+	if user.ID <= 0 {
+		return nil, errors.New("invalid User")
+	}
+
+	return user, nil
 }
