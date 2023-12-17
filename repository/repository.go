@@ -18,6 +18,7 @@ type DatabaseRepo interface {
 	GetCommentByID(id uint) (*models.Comment, error)
 	CreateComment(comment *models.Comment) (uint, error)
 	UpdateComment(comment *models.Comment) error
+	DeleteCommentByID(id uint) error
 
 	GetChannels(id int) ([]models.CustomChannel, error)
 	GetChannelByID(id int) (*models.CustomChannelDTO, error)

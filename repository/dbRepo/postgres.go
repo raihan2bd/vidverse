@@ -195,6 +195,16 @@ func (m *postgresDBRepo) UpdateComment(comment *models.Comment) error {
 	return nil
 }
 
+// delete comment
+func (m *postgresDBRepo) DeleteCommentByID(id uint) error {
+	result := m.DB.Unscoped().Delete(&models.Comment{}, id)
+	if result.Error != nil {
+		return errors.New("something went wrong. failed to delete the comment")
+	}
+
+	return nil
+}
+
 // Get All the channels
 func (m *postgresDBRepo) GetChannels(userID int) ([]models.CustomChannel, error) {
 	var channels []models.CustomChannel
