@@ -80,7 +80,7 @@ func (m *Repo) WSHandler(c *gin.Context) {
 	// Extract user ID from context or request
 	tokenString := c.Query("token")
 	if tokenString == "" {
-		conn.WriteJSON(WsPayload{Action: "error", Data: ErrorRes{Error: "Unauthorized", Status: http.StatusUnauthorized}})
+		conn.WriteJSON(WsPayload{Action: "unauthorized", Data: ErrorRes{Error: "Unauthorized", Status: http.StatusUnauthorized}})
 		conn.Close()
 		return
 	}
@@ -88,13 +88,13 @@ func (m *Repo) WSHandler(c *gin.Context) {
 	// validate token
 	token, err := helpers.DecodeToken(tokenString)
 	if err != nil {
-		conn.WriteJSON(WsPayload{Action: "error", Data: ErrorRes{Error: "Unauthorized", Status: http.StatusUnauthorized}})
+		conn.WriteJSON(WsPayload{Action: "unauthorized", Data: ErrorRes{Error: "Unauthorized", Status: http.StatusUnauthorized}})
 		conn.Close()
 		return
 	}
 
 	if !helpers.ValidateToken(token) {
-		conn.WriteJSON(WsPayload{Action: "error", Data: ErrorRes{Error: "Unauthorized", Status: http.StatusUnauthorized}})
+		conn.WriteJSON(WsPayload{Action: "unauthorized", Data: ErrorRes{Error: "Unauthorized", Status: http.StatusUnauthorized}})
 		conn.Close()
 		return
 	}
