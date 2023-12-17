@@ -128,7 +128,7 @@ func (m *Repo) HandleCreateOrUpdateComment(c *gin.Context) {
 
 	if payload.ID > 0 {
 		// update comment
-		comment, err := m.App.DBMethods.GetCommnetByID(payload.ID)
+		comment, err := m.App.DBMethods.GetCommentByID(payload.ID)
 		if err != nil {
 			c.IndentedJSON(400, gin.H{
 				"error": "The comment does not exist",

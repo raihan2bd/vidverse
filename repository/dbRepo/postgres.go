@@ -165,7 +165,7 @@ func (m *postgresDBRepo) GetCommentsByVideoID(id, page, limit int) ([]models.Com
 }
 
 // Get comment by ID
-func (m *postgresDBRepo) GetCommentByID(id int) (*models.Comment, error) {
+func (m *postgresDBRepo) GetCommentByID(id uint) (*models.Comment, error) {
 	var comment models.Comment
 	err := m.DB.Preload("User").First(&comment, id).Error
 	if err != nil {
@@ -173,6 +173,16 @@ func (m *postgresDBRepo) GetCommentByID(id int) (*models.Comment, error) {
 	}
 
 	return &comment, nil
+}
+
+// Create new comment
+func (m *postgresDBRepo) CreateComment(comment *models.Comment) (uint, error) {
+	result := m.DB.Create(&comment)
+	if result.Error != nil {
+		return 0, errors.New("failed to create comment")
+	}
+
+	return comment.ID, nil
 }
 
 // Get All the channels
