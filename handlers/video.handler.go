@@ -455,62 +455,6 @@ func (m *Repo) HandleDeleteVidoe(c *gin.Context) {
 
 // Upload file with cloudinary
 
-// Get comments
-func (m *Repo) HandleGetComments(c *gin.Context) {
-	id, err := strconv.Atoi(c.Params.ByName("videoID"))
-
-	if err != nil {
-		c.JSON(http.StatusNotFound, gin.H{
-			"error":  "404 video not found!",
-			"errors": err,
-		})
-		return
-	}
-
-	var page, limit int
-	page, err = strconv.Atoi(c.DefaultQuery("page", "1"))
-	if err != nil {
-		c.JSON(http.StatusNotFound, gin.H{
-			"error": "404 video not found!",
-		})
-		return
-	}
-
-	limit, err = strconv.Atoi(c.DefaultQuery("limit", "24"))
-
-	if err != nil {
-		c.JSON(http.StatusNotFound, gin.H{
-			"error": "404 video not found!",
-		})
-		return
-	}
-
-	var comments []models.CommentDTO
-	var count int64
-	comments, count, err = m.App.DBMethods.GetCommentsByVideoID(id, page, limit)
-
-	if err != nil {
-		c.JSON(http.StatusNotFound, gin.H{
-			"error": "404 video not found!",
-		})
-		return
-	}
-
-	var hasNextPage bool
-
-	if count > int64(page*limit) {
-		hasNextPage = true
-	} else {
-		hasNextPage = false
-	}
-
-	c.IndentedJSON(http.StatusOK, gin.H{
-		"page":          page,
-		"comments":      comments,
-		"has_next_page": hasNextPage,
-	})
-}
-
 // get videos by channelID with pagination
 func (m *Repo) HandleGetVideosByChannelID(c *gin.Context) {
 	chanID, err := strconv.Atoi(c.Params.ByName("channelID"))
