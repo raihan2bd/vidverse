@@ -185,6 +185,16 @@ func (m *postgresDBRepo) CreateComment(comment *models.Comment) (uint, error) {
 	return comment.ID, nil
 }
 
+// update comment
+func (m *postgresDBRepo) UpdateComment(comment *models.Comment) error {
+	result := m.DB.Save(&comment)
+	if result.Error != nil {
+		return errors.New("failed to update comment")
+	}
+
+	return nil
+}
+
 // Get All the channels
 func (m *postgresDBRepo) GetChannels(userID int) ([]models.CustomChannel, error) {
 	var channels []models.CustomChannel

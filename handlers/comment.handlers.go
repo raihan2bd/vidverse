@@ -206,7 +206,7 @@ func (m *Repo) HandleDeleteComment(c *gin.Context) {
 		return
 	}
 
-	comment, err := m.App.DBMethods.GetCommnetByID(commentID)
+	comment, err := m.App.DBMethods.GetCommentByID(uint(commentID))
 	if err != nil {
 		c.IndentedJSON(400, gin.H{
 			"error": "The comment you are trying to delete does not exist",
@@ -221,7 +221,7 @@ func (m *Repo) HandleDeleteComment(c *gin.Context) {
 		return
 	}
 
-	err = m.App.DBMethods.DeleteCommentByID(commentID)
+	err = m.App.DBMethods.DeleteCommentByID(uint(commentID))
 	if err != nil {
 		c.IndentedJSON(500, gin.H{
 			"error": "Something went wrong. Please try again later",
