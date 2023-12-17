@@ -164,6 +164,17 @@ func (m *postgresDBRepo) GetCommentsByVideoID(id, page, limit int) ([]models.Com
 	return comments, count, nil
 }
 
+// Get comment by ID
+func (m *postgresDBRepo) GetCommentByID(id int) (*models.Comment, error) {
+	var comment models.Comment
+	err := m.DB.Preload("User").First(&comment, id).Error
+	if err != nil {
+		return nil, errors.New("404 comment not found")
+	}
+
+	return &comment, nil
+}
+
 // Get All the channels
 func (m *postgresDBRepo) GetChannels(userID int) ([]models.CustomChannel, error) {
 	var channels []models.CustomChannel
