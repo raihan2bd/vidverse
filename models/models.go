@@ -15,8 +15,8 @@ type CustomModel struct {
 
 type User struct {
 	CustomModel
-	Name     string `gorm:"type:varchar(100);not null" json:"name"`
-	UserName string `gorm:"type:varchar(100);unique;not null" json:"username"`
+	Name string `gorm:"type:varchar(100);not null" json:"name"`
+	// UserName string `gorm:"type:varchar(100);unique;not null" json:"username"`
 	Email    string `gorm:"type:varchar(255);unique;not null" json:"email"`
 	Password string `gorm:"type:varchar(255);not null" json:"-"`
 	Avatar   string `gorm:"type:varchar(255);not null;default:'https://upload.wikimedia.org/wikipedia/commons/5/59/User-avatar.svg'" json:"avatar"`
@@ -26,8 +26,8 @@ type User struct {
 
 type UserPayload struct {
 	CustomModel
-	Name     string `gorm:"type:varchar(100);not null" json:"name"`
-	UserName string `gorm:"type:varchar(100);unique;not null" json:"username"`
+	Name string `gorm:"type:varchar(100);not null" json:"name"`
+	// UserName string `gorm:"type:varchar(100);unique;not null" json:"username"`
 	Email    string `gorm:"type:varchar(255);unique;not null" json:"email"`
 	Password string `gorm:"type:varchar(255);not null" json:"password"`
 	Avatar   string `gorm:"type:varchar(255);not null;default:'https://upload.wikimedia.org/wikipedia/commons/5/59/User-avatar.svg'" json:"avatar"`

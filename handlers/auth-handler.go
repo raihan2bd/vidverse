@@ -1,10 +1,10 @@
 package handlers
 
 import (
+	"fmt"
 	"log"
 	"net/http"
 	"os"
-	"regexp"
 	"strings"
 	"time"
 
@@ -61,7 +61,7 @@ func (m *Repo) LoginHandler(c *gin.Context) {
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
 		"sub":       user.ID,
 		"user_role": user.UserRole,
-		"user_name": user.UserName,
+		"user_name": user.Name,
 		"exp":       exp,
 	})
 
@@ -85,7 +85,6 @@ func (m *Repo) LoginHandler(c *gin.Context) {
 	}
 
 	userResponse.ID = user.ID
-	userResponse.Username = user.UserName
 	userResponse.UserRole = user.UserRole
 	userResponse.Avatar = user.Avatar
 
@@ -102,6 +101,7 @@ func (m *Repo) HandleMyAuthInfo(c *gin.Context) {
 }
 
 func (m *Repo) SignupHandler(c *gin.Context) {
+	fmt.Println("SignupHandler")
 	var payload models.UserPayload
 
 	if err := c.BindJSON(&payload); err != nil {
@@ -113,7 +113,6 @@ func (m *Repo) SignupHandler(c *gin.Context) {
 	}
 
 	payload.Name = strings.TrimSpace(payload.Name)
-	payload.UserName = strings.TrimSpace(strings.ToLower(payload.UserName))
 
 	// initialize the validator
 	v := validator.New()
@@ -122,13 +121,6 @@ func (m *Repo) SignupHandler(c *gin.Context) {
 	v.Required(payload.Name, "name", "Name is Required")
 	v.IsLength(payload.Name, "name", 3, 100)
 	v.IsValidFullName(payload.Name, "name")
-
-	// validate username
-	v.IsLength(payload.UserName, "username", 5, 100)
-	regex := regexp.MustCompile(`^[a-z][a-z0-9]*$`)
-	if !regex.MatchString(payload.UserName) {
-		v.AddError("username", "Username must start with a letter and can contain letters or numbers only.")
-	}
 
 	// validate email
 	v.Required(payload.Email, "email", "Email is required")
@@ -145,17 +137,17 @@ func (m *Repo) SignupHandler(c *gin.Context) {
 		return
 	}
 
-	// check username is exist
-	user, _ := m.App.DBMethods.GetUserByUsername(payload.UserName)
-	if user != nil {
-		c.IndentedJSON(http.StatusBadRequest, gin.H{
-			"error": "username is already taken. please try another one",
-		})
-		return
-	}
+	// // check username is exist
+	// user, _ := m.App.DBMethods.GetUserByUsername(payload.UserName)
+	// if user != nil {
+	// 	c.IndentedJSON(http.StatusBadRequest, gin.H{
+	// 		"error": "username is already taken. please try another one",
+	// 	})
+	// 	return
+	// }
 
 	// check email is exist
-	user, _ = m.App.DBMethods.GetUserByEmail(payload.Email)
+	user, _ := m.App.DBMethods.GetUserByEmail(payload.Email)
 	if user != nil {
 		c.IndentedJSON(http.StatusBadRequest, gin.H{
 			"error": "email address is already exist. please try another one",
@@ -175,7 +167,6 @@ func (m *Repo) SignupHandler(c *gin.Context) {
 	// save the info into the database
 	newUser := models.User{
 		Name:     payload.Name,
-		UserName: payload.UserName,
 		Password: string(hash),
 		Email:    payload.Email,
 	}
