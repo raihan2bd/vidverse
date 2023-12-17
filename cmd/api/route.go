@@ -29,8 +29,10 @@ func NewRouter() *gin.Engine {
 	v1.GET("/videos/:videoID", handlers.Methods.HandleGetSingleVideo)
 	v1.DELETE("/videos/:videoID", handlers.Methods.HandleDeleteVidoe)
 	v1.GET("/related_videos/:channelID", handlers.Methods.HandleGetRelatedVideos)
-	v1.GET("/comments/:videoID", handlers.Methods.HandleGetComments)
 	v1.GET("/file/video/:videoID", handlers.Methods.StreamVideoBuff)
+
+	v1.POST("/comments", handlers.Methods.HandleCreateOrUpdateComment)
+	v1.GET("/comments/:videoID", handlers.Methods.HandleGetComments)
 
 	v1.POST("/likes/:videoID", handlers.Methods.HandleVideoLike)
 
