@@ -55,7 +55,7 @@ func (m *Repo) LoginHandler(c *gin.Context) {
 		return
 	}
 
-	exp := time.Now().Add(time.Second * 24).Unix()
+	exp := time.Now().Add(time.Hour * 24 * 7).Unix()
 
 	// Generate Token
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
