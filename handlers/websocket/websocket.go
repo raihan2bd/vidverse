@@ -1,7 +1,6 @@
 package websocket
 
 import (
-	"fmt"
 	"net/http"
 	"sync"
 
@@ -99,7 +98,7 @@ func (m *Repo) WSHandler(c *gin.Context) {
 		return
 	}
 
-	userID := token["sub"].(uint)
+	userID := uint(token["sub"].(float64))
 
 	// Add client to map
 	m.Clients.Add(userID, conn)
@@ -124,8 +123,6 @@ func (m *Repo) WSHandler(c *gin.Context) {
 				m.App.NotificationChan <- &config.NotificationEvent{BroadcasterID: userID, Action: "disconnect"}
 				break
 			}
-
-			fmt.Println("payload", payload)
 
 			// Send message event
 			m.App.NotificationChan <- &config.NotificationEvent{BroadcasterID: userID, Data: payload, Action: payload.Action}
