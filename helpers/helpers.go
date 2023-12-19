@@ -20,7 +20,7 @@ func DecodeToken(tokenString string) (jwt.MapClaims, error) {
 		}
 
 		// hmacSampleSecret is a []byte containing your secret, e.g. []byte("my_secret_key")
-		return []byte(os.Getenv("SECRET")), nil
+		return []byte(os.Getenv("JWT_SECRET")), nil
 	})
 
 	if err != nil {
@@ -43,11 +43,7 @@ func ValidateToken(claims jwt.MapClaims) bool {
 	}
 
 	// check the user_id from the token as well
-	if claims["user_id"] != 0 {
-		return false
-	}
-
-	return true
+	return claims["sub"] != 0
 }
 
 // Validate user_id and convert to uint
