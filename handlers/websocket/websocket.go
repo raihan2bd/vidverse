@@ -104,7 +104,7 @@ func (m *Repo) WSHandler(c *gin.Context) {
 	m.Clients.Add(userID, conn)
 
 	// Send connection event message
-	m.App.NotificationChan <- &config.NotificationEvent{BroadcasterID: userID, Action: "message", Data: "connected"}
+	m.App.NotificationChan <- &config.NotificationEvent{BroadcasterID: userID, Action: "notifications", Data: []string{}}
 	// conn.WriteJSON(WsPayload{Action: "connect", Data: "connected"})
 
 	go func() {
@@ -143,7 +143,7 @@ func (m *Repo) HandleMessages() {
 			conn := m.Clients.Get(event.BroadcasterID)
 			conn.WriteJSON(WsPayload{Action: event.Action, Data: event.Data})
 
-		case "message":
+		case "notifications":
 			// get clients conn from map using broadcasterID
 			conn := m.Clients.Get(event.BroadcasterID)
 			// Send message to client
