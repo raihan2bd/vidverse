@@ -76,13 +76,13 @@ func seedUsers() {
 		{
 			Name:     "Admin",
 			Email:    "admin@test.com",
-			Password: "Admin@123",
+			Password: "$2a$12$tNErjg8dC6nRDPE9jU5Vj.nupSFbl0l6Hc4rCkQNVcUoKapiSkug2", // Admin@123
 			UserRole: "admin",
 		},
 		{
 			Name:     "Bob",
 			Email:    "bob@example.com",
-			Password: "Password@123",
+			Password: "$2a$12$OFZmsYtt7chRQ8zl8Swt/OHiWyAiFT.yREQGUSKBMMFnjSh2g6quW", // Pass@123
 		},
 	}
 
