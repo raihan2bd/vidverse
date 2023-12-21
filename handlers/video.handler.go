@@ -111,7 +111,7 @@ func (m *Repo) HandleCreateVideo(c *gin.Context) {
 	video := models.Video{Title: title, Description: description, PublicID: resp.PublicID, SecureURL: resp.SecureURL, ChannelID: 1}
 
 	// set default thumbnail
-	if video.Title == "" {
+	if video.Thumb == "" {
 		video.Thumb = fmt.Sprintf("https://res.cloudinary.com/%s/video/upload/%s.jpeg", initializers.CLD.Config.Cloud.CloudName, video.PublicID)
 	}
 

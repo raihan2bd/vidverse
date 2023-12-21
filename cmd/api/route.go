@@ -13,6 +13,7 @@ func NewRouter() *gin.Engine {
 	config := cors.DefaultConfig()
 	config.AllowOrigins = []string{"http://localhost:3000"}
 	config.AllowCredentials = true
+	config.AllowHeaders = []string{"Authorization", "Content-Type"}
 
 	r.Use(cors.New(config))
 	r.Use(gin.Logger())
