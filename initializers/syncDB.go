@@ -144,6 +144,14 @@ func seedVideos() {
 			Thumb:       "https://res.cloudinary.com/dog87elav/video/upload/vidverse/uploads/videos/roepf8p7stjlcol6pa8q.jpeg",
 			PublicID:    "vidverse/uploads/videos/roepf8p7stjlcol6pa8q",
 		},
+		{
+			Title:       "Video 5",
+			Description: "Description for Video 5. This is dummy video description.",
+			SecureURL:   "https://res.cloudinary.com/dog87elav/video/upload/v1695878153/vidverse/uploads/videos/s1u8h4hqwkkxmoovi1s0.mp4",
+			ChannelID:   2,
+			Thumb:       "https://res.cloudinary.com/dog87elav/video/upload/vidverse/uploads/videos/s1u8h4hqwkkxmoovi1s0.jpeg",
+			PublicID:    "vidverse/uploads/videos/s1u8h4hqwkkxmoovi1s0",
+		},
 	}
 
 	for _, video := range videos {
