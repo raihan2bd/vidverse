@@ -2,6 +2,7 @@ package initializers
 
 import (
 	"log"
+	"os"
 
 	"errors"
 
@@ -16,30 +17,67 @@ func SyncDatabase() error {
 		return errors.New("failed to sync database")
 	}
 
+	env := os.Getenv("ENVIRONMENT")
+
+	if env == "development" {
+		if !checkUserSeed() {
+			seedUsers()
+		}
+		if !checkChannelSeed() {
+			seedChannels()
+		}
+		if !checkVideoSeed() {
+			seedVideos()
+		}
+		if !checkLikeSeed() {
+			seedLikes()
+		}
+		if !checkCommentSeed() {
+			seedComments()
+		}
+	}
+
 	return nil
 
-	// isSeeded := checkDatabaseSeed()
-	// if !isSeeded {
-	// 	seedUsers()
-	// 	seedChannels()
-	// 	seedVideos()
-	// 	seedLikes()
-	// 	seedComments()
-	// }
 }
 
-func checkDatabaseSeed() bool {
+func checkUserSeed() bool {
 	var count int64
 	DB.Model(&models.User{}).Count(&count)
+	return count > 0
+}
+
+func checkChannelSeed() bool {
+	var count int64
+	DB.Model(&models.Channel{}).Count(&count)
+	return count > 0
+}
+
+func checkVideoSeed() bool {
+	var count int64
+	DB.Model(&models.Video{}).Count(&count)
+	return count > 0
+}
+
+func checkLikeSeed() bool {
+	var count int64
+	DB.Model(&models.Like{}).Count(&count)
+	return count > 0
+}
+
+func checkCommentSeed() bool {
+	var count int64
+	DB.Model(&models.Comment{}).Count(&count)
 	return count > 0
 }
 
 func seedUsers() {
 	users := []models.User{
 		{
-			Name:     "Alice",
-			Email:    "alice@example.com",
-			Password: "Password@123",
+			Name:     "Admin",
+			Email:    "admin@test.com",
+			Password: "Admin@123",
+			UserRole: "admin",
 		},
 		{
 			Name:     "Bob",
@@ -79,12 +117,32 @@ func seedVideos() {
 			Description: "Description for Video 1. This is dummy video description.",
 			SecureURL:   "https://res.cloudinary.com/dog87elav/video/upload/v1695878153/vidverse/uploads/videos/d8kukajtsusdsfihoeoq.mp4",
 			ChannelID:   1,
+			Thumb:       "https://res.cloudinary.com/dog87elav/video/upload/vidverse/uploads/videos/d8kukajtsusdsfihoeoq.jpeg",
+			PublicID:    "vidverse/uploads/videos/d8kukajtsusdsfihoeoq",
 		},
 		{
 			Title:       "Video 2",
 			Description: "Description for Video 2. This is dummy video description.",
+			SecureURL:   "https://res.cloudinary.com/dog87elav/video/upload/v1695878153/vidverse/uploads/videos/p6sxoetuxl84tdcyrycw.mp4",
+			ChannelID:   1,
+			Thumb:       "https://res.cloudinary.com/dog87elav/video/upload/vidverse/uploads/videos/p6sxoetuxl84tdcyrycw.jpeg",
+			PublicID:    "vidverse/uploads/videos/p6sxoetuxl84tdcyrycw",
+		},
+		{
+			Title:       "Video 3",
+			Description: "Description for Video 3. This is dummy video description.",
 			SecureURL:   "https://res.cloudinary.com/dog87elav/video/upload/v1695878153/vidverse/uploads/videos/d8kukajtsusdsfihoeoq.mp4",
+			ChannelID:   1,
+			Thumb:       "https://res.cloudinary.com/dog87elav/video/upload/vidverse/uploads/videos/d8kukajtsusdsfihoeoq.jpeg",
+			PublicID:    "vidverse/uploads/videos/d8kukajtsusdsfihoeoq",
+		},
+		{
+			Title:       "Video 4",
+			Description: "Description for Video 4. This is dummy video description.",
+			SecureURL:   "https://res.cloudinary.com/dog87elav/video/upload/v1695878153/vidverse/uploads/videos/roepf8p7stjlcol6pa8q.mp4",
 			ChannelID:   2,
+			Thumb:       "https://res.cloudinary.com/dog87elav/video/upload/vidverse/uploads/videos/roepf8p7stjlcol6pa8q.jpeg",
+			PublicID:    "vidverse/uploads/videos/roepf8p7stjlcol6pa8q",
 		},
 	}
 
