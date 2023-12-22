@@ -29,4 +29,6 @@ type DatabaseRepo interface {
 	DeleteLikeByID(id uint) error
 
 	CreateNotification(notification *models.Notification) error
+
+	IsSubscribed(userID, channelID uint) bool
 }

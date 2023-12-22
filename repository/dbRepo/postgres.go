@@ -326,3 +326,18 @@ func (m *postgresDBRepo) CreateNotification(notification *models.Notification) e
 
 	return nil
 }
+
+// Check user subscription status for a channel
+func (m *postgresDBRepo) IsSubscribed(userID, channelID uint) bool {
+	var subscription models.Subscription
+	err := m.DB.Where("user_id = ? AND channel_id = ?", userID, channelID).First(&subscription).Error
+	if err != nil {
+		return false
+	}
+
+	if subscription.ID == 0 {
+		return false
+	}
+
+	return true
+}
