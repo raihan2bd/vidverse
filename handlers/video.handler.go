@@ -162,6 +162,15 @@ func (m *Repo) HandleGetSingleVideo(c *gin.Context) {
 		UserID:      video.Channel.UserID,
 	}
 
+	// check the user is logged in or not
+	userID, _ := c.Get("user_id")
+	if userID != nil {
+		// check the user is subscribed to the channel or not
+		channel.IsSubscribed = m.App.DBMethods.IsSubscribed(userID.(uint), video.Channel.ID)
+	} else {
+		channel.IsSubscribed = false
+	}
+
 	c.IndentedJSON(http.StatusOK, gin.H{
 		"title":       video.Title,
 		"description": video.Description,
