@@ -155,13 +155,13 @@ func (m *Repo) HandleGetSingleVideo(c *gin.Context) {
 	}
 
 	var channel = &models.ChannelPayload{
-		ID:          video.Channel.ID,
-		Title:       video.Channel.Title,
-		Description: video.Channel.Description,
-		Logo:        video.Channel.Logo,
-		UserID:      video.Channel.UserID,
+		ID:            video.Channel.ID,
+		Title:         video.Channel.Title,
+		Description:   video.Channel.Description,
+		Logo:          video.Channel.Logo,
+		UserID:        video.Channel.UserID,
+		Subscriptions: video.Channel.Subscriptions,
 	}
-
 	// check the user is logged in or not
 	userID, _ := c.Get("user_id")
 	if userID != nil {

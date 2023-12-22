@@ -113,7 +113,7 @@ func (m *postgresDBRepo) GetVideoByID(id int) (*models.Video, error) {
 
 	video.Channel.Subscriptions = 0
 
-	var count int64
+	var count int64 = 0
 	tx := m.DB.Table("subscriptions").Select("subscriptions.id").
 		Joins("left join channels on channels.id = subscriptions.channel_id").
 		Where("subscriptions.channel_id = ?", video.ChannelID).

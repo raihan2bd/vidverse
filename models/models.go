@@ -37,16 +37,16 @@ type UserPayload struct {
 
 type Channel struct {
 	CustomModel
-	Title         string  `gorm:"type:varchar(100)" json:"title"`
-	Description   string  `gorm:"type:text;size:500" json:"description"`
-	Logo          string  `gorm:"type:varchar(255);" json:"logo"`
-	UserID        uint    `json:"user_id"`
-	LogoPublicID  string  `gorm:"type:varchar(255);not null" json:"-"`
-	User          User    `gorm:"foreignKey:UserID" json:"user"`
-	Videos        []Video `gorm:"foreignKey:ChannelID" json:"videos"`
-	Subscribers   []User  `json:"subscribers"`
-	Subscriptions int64   `json:"subscriptions,omitempty"`
-	IsSubscribed  bool    `json:"is_subscribed,omitempty"`
+	Title         string         `gorm:"type:varchar(100)" json:"title"`
+	Description   string         `gorm:"type:text;size:500" json:"description"`
+	Logo          string         `gorm:"type:varchar(255);" json:"logo"`
+	UserID        uint           `json:"user_id"`
+	LogoPublicID  string         `gorm:"type:varchar(255);not null" json:"-"`
+	User          User           `gorm:"foreignKey:UserID" json:"user"`
+	Videos        []Video        `gorm:"foreignKey:ChannelID" json:"videos"`
+	Subscribers   []Subscription `json:"subscribers,omitempty"`
+	Subscriptions int64          `json:"subscriptions,omitempty"`
+	IsSubscribed  bool           `json:"is_subscribed,omitempty"`
 }
 
 type Subscription struct {
@@ -56,14 +56,14 @@ type Subscription struct {
 }
 
 type ChannelPayload struct {
-	ID            uint   `json:"id"`
-	Title         string `gorm:"type:varchar(100)" json:"title,omitempty"`
-	Description   string `gorm:"type:text;size:500" json:"description,omitempty"`
-	Logo          string `gorm:"type:varchar(255);" json:"logo,omitempty"`
-	UserID        uint   `json:"user_id,omitempty"`
-	Subscribers   []User `json:"subscribers"`
-	Subscriptions int64  `json:"subscriptions,omitempty"`
-	IsSubscribed  bool   `json:"is_subscribed,omitempty"`
+	ID            uint           `json:"id"`
+	Title         string         `gorm:"type:varchar(100)" json:"title,omitempty"`
+	Description   string         `gorm:"type:text;size:500" json:"description,omitempty"`
+	Logo          string         `gorm:"type:varchar(255);" json:"logo,omitempty"`
+	UserID        uint           `json:"user_id,omitempty"`
+	Subscribers   []Subscription `json:"subscribers,omitempty"`
+	Subscriptions int64          `json:"subscriptions,omitempty"`
+	IsSubscribed  bool           `json:"is_subscribed,omitempty"`
 }
 
 type Video struct {
