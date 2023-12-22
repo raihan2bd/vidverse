@@ -111,6 +111,19 @@ func (m *postgresDBRepo) GetVideoByID(id int) (*models.Video, error) {
 	m.DB.Model(&video).Update("views", video.Views+1)
 	video.Views = video.Views + 1
 
+	video.Channel.Subscriptions = 0
+
+	var count int64
+	tx := m.DB.Table("subscriptions").Select("subscriptions.id").
+		Joins("left join channels on channels.id = subscriptions.channel_id").
+		Where("subscriptions.channel_id = ?", video.ChannelID).
+		Count(&count)
+
+	if tx.Error != nil {
+		return nil, errors.New("internal server error. Please try again")
+	}
+
+	video.Channel.Subscriptions = count
 	return &video, nil
 }
 
