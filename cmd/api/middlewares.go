@@ -33,7 +33,13 @@ func HasToken(c *gin.Context) {
 }
 
 func IsLoggedIn(c *gin.Context) {
-	claims, err := helpers.DecodeToken(c.Request.Header.Get("Authorization"))
+	token := c.Request.Header.Get("Authorization")
+	if token == "" {
+		c.Next()
+		return
+	}
+
+	claims, err := helpers.DecodeToken(token)
 
 	if err != nil {
 		c.AbortWithStatus(401)

@@ -341,3 +341,24 @@ func (m *postgresDBRepo) IsSubscribed(userID, channelID uint) bool {
 
 	return true
 }
+
+func (m *postgresDBRepo) ToggleSubscription(userID, channelID uint) error {
+	var subscription models.Subscription
+	tsx := m.DB.Where("user_id = ? AND channel_id = ?", userID, channelID).First(&subscription)
+	if tsx.Error != nil {
+		subscription.UserID = userID
+		subscription.ChannelID = channelID
+		ts := m.DB.Create(&subscription)
+		if ts.Error != nil {
+			fmt.Println(ts.Error, "error")
+			return errors.New("failed to subscription the channel")
+		}
+	} else {
+		ts := m.DB.Unscoped().Delete(&subscription)
+		if ts.Error != nil {
+			return errors.New("failed to  unsubscribe the channel")
+		}
+	}
+
+	return nil
+}

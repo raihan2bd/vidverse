@@ -31,4 +31,5 @@ type DatabaseRepo interface {
 	CreateNotification(notification *models.Notification) error
 
 	IsSubscribed(userID, channelID uint) bool
+	ToggleSubscription(userID, channelID uint) error
 }
