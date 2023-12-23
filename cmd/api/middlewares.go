@@ -1,6 +1,8 @@
 package main
 
 import (
+	"fmt"
+
 	"github.com/gin-gonic/gin"
 	"github.com/raihan2bd/vidverse/helpers"
 )
@@ -16,6 +18,7 @@ func HasToken(c *gin.Context) {
 	claims, err := helpers.DecodeToken(token)
 
 	if err != nil {
+		fmt.Println(err)
 		c.Next()
 		return
 	}
