@@ -163,12 +163,20 @@ func (m *Repo) HandleGetSingleVideo(c *gin.Context) {
 		Subscriptions: video.Channel.Subscriptions,
 	}
 	// check the user is logged in or not
+	var isLiked bool
 	userID, ok := c.Get("user_id")
 	if !ok {
 		channel.IsSubscribed = false
+		isLiked = false
 	} else {
 		userIDUint := uint(userID.(float64))
 		channel.IsSubscribed = m.App.DBMethods.IsSubscribed(userIDUint, video.Channel.ID)
+		_, err := m.App.DBMethods.GetLikeByVideoIDAndUserID(userIDUint, video.ID)
+		if err != nil {
+			isLiked = false
+		} else {
+			isLiked = true
+		}
 	}
 
 	c.IndentedJSON(http.StatusOK, gin.H{
@@ -179,6 +187,7 @@ func (m *Repo) HandleGetSingleVideo(c *gin.Context) {
 		"channel":     channel,
 		"likes":       len(video.Likes),
 		"views":       video.Views,
+		"is_liked":    isLiked,
 	})
 
 }
@@ -526,23 +535,30 @@ func (m *Repo) HandleGetVideosByChannelID(c *gin.Context) {
 
 // Handle Video Like
 func (m *Repo) HandleVideoLike(c *gin.Context) {
-	// Get Video ID
-	videoID, err := strconv.Atoi(c.Params.ByName("videoID"))
-	if err != nil {
-		c.JSON(http.StatusNotFound, gin.H{
-			"error": "404 video not found!",
+	user_id, ok := c.Get("user_id")
+	if !ok {
+		c.JSON(http.StatusUnauthorized, gin.H{
+			"error": "Access denied!",
 		})
 		return
 	}
 
-	// Get User ID
-	userID := uint(1) //Todo: get user id from context
+	userID := uint(user_id.(float64))
 
 	// check the user is available or not
 	user, err := m.App.DBMethods.GetUserByID(userID)
 	if err != nil {
 		c.JSON(http.StatusUnauthorized, gin.H{
 			"error": "Access denied!",
+		})
+		return
+	}
+
+	// Get Video ID
+	videoID, err := strconv.Atoi(c.Params.ByName("videoID"))
+	if err != nil {
+		c.JSON(http.StatusNotFound, gin.H{
+			"error": "404 video not found!",
 		})
 		return
 	}
@@ -568,11 +584,13 @@ func (m *Repo) HandleVideoLike(c *gin.Context) {
 	like, err = m.App.DBMethods.GetLikeByVideoIDAndUserID(uint(videoID), userID)
 
 	if err != nil {
-		like.UserID = userID
-		like.VideoID = uint(videoID)
+		var newLike = models.Like{
+			UserID:  userID,
+			VideoID: uint(videoID),
+		}
 
 		// Create a new like
-		id, err := m.App.DBMethods.CreateLike(like)
+		id, err := m.App.DBMethods.CreateLike(&newLike)
 
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{
@@ -588,13 +606,13 @@ func (m *Repo) HandleVideoLike(c *gin.Context) {
 
 		// send notification to the video owner
 		ownerID := video.Channel.UserID
-		notification := models.Notification{LikeID: id, Type: "like", VideoID: uint(videoID), SenderID: userID, ReceiverID: ownerID, SenderName: user.Name, IsRead: false}
+		notification := models.Notification{LikeID: id, Type: "like", VideoID: uint(videoID), SenderID: user.ID, ReceiverID: ownerID, SenderName: user.Name, IsRead: false}
 
 		err = m.App.DBMethods.CreateNotification(&notification)
 
 		if err == nil {
 			// send notification to the user
-			m.App.NotificationChan <- &config.NotificationEvent{BroadcasterID: ownerID, Action: "a_new_notification", Data: notification}
+			m.App.NotificationChan <- &config.NotificationEvent{BroadcasterID: ownerID, Action: "a_new_notification", Data: &notification}
 		}
 
 		return
