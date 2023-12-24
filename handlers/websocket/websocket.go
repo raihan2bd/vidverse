@@ -1,6 +1,8 @@
 package websocket
 
 import (
+	"fmt"
+	"log"
 	"net/http"
 	"sync"
 
@@ -8,6 +10,7 @@ import (
 	"github.com/gorilla/websocket"
 	"github.com/raihan2bd/vidverse/config"
 	"github.com/raihan2bd/vidverse/helpers"
+	"github.com/raihan2bd/vidverse/models"
 )
 
 type Repo struct {
@@ -108,10 +111,16 @@ func (m *Repo) WSHandler(c *gin.Context) {
 	// conn.WriteJSON(WsPayload{Action: "connect", Data: "connected"})
 
 	go func() {
+		// defer func() {
+		// 	conn.Close()
+		// 	m.Clients.Remove(userID)
+		// 	m.App.NotificationChan <- &config.NotificationEvent{BroadcasterID: userID, Action: "disconnect"}
+		// }()
+
 		defer func() {
-			conn.Close()
-			m.Clients.Remove(userID)
-			m.App.NotificationChan <- &config.NotificationEvent{BroadcasterID: userID, Action: "disconnect"}
+			if r := recover(); r != nil {
+				log.Println("Error", fmt.Sprintf("%v", r))
+			}
 		}()
 
 		var payload WsPayload
@@ -141,13 +150,46 @@ func (m *Repo) HandleMessages() {
 
 		case "a_new_notification":
 			conn := m.Clients.Get(event.BroadcasterID)
-			conn.WriteJSON(WsPayload{Action: event.Action, Data: event.Data})
+			if conn != nil {
+				err := conn.WriteJSON(WsPayload{Action: "a_new_notification", Data: "notification sent"})
+				if err != nil {
+					continue
+				}
+			} else {
+				continue
+			}
+			// // conn.WriteJSON(WsPayload{Action: event.Action, Data: event.Data})
+
+			// fmt.Println("a_new_notification", event.BroadcasterID)
+
+			// // err := conn.WriteJSON(WsPayload{Action: event.Action, Data: event.Data})
+			// fmt.Println("a_new_notification", event.Data)
+			// //
+			// err := conn.WriteJSON(WsPayload{Action: "a_new_notification", Data: "notification sent"})
+			// if err != nil {
+			// 	fmt.Println(err)
+			// 	conn.Close()
+			// 	continue
+			// }
+
+			// // if err != nil {
+			// // 	fmt.Println(err)
+			// // 	conn.Close()
+			// // }
 
 		case "notifications":
 			// get clients conn from map using broadcasterID
 			conn := m.Clients.Get(event.BroadcasterID)
 			// Send message to client
-			conn.WriteJSON(WsPayload{Action: event.Action, Data: event.Data})
+			notifications, err := m.App.DBMethods.GetUnreadNotificationsByUserID(event.BroadcasterID)
+			if err != nil {
+				fmt.Println(err)
+				notifications = []models.Notification{}
+			}
+			err = conn.WriteJSON(WsPayload{Action: event.Action, Data: notifications})
+			if err != nil {
+				conn.Close()
+			}
 
 		case "disconnect":
 			// Handle client disconnect
