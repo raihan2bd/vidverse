@@ -15,6 +15,10 @@ func (m *Repo) HandleGetSubscribedChannels(c *gin.Context) {
 
 	userIDUint := uint(userID.(float64))
 	channelID, err := strconv.Atoi(c.Param("channelID"))
+	if err != nil {
+		c.JSON(400, gin.H{"error": "invalid channel id"})
+		return
+	}
 
 	channels, err := m.App.DBMethods.GetChannelByID(channelID)
 	if err != nil {
