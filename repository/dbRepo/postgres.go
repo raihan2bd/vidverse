@@ -317,16 +317,6 @@ func (m *postgresDBRepo) DeleteLikeByID(id uint) error {
 	return nil
 }
 
-// create notification
-func (m *postgresDBRepo) CreateNotification(notification *models.Notification) error {
-	result := m.DB.Create(&notification)
-	if result.Error != nil {
-		return errors.New("failed to create notification")
-	}
-
-	return nil
-}
-
 // Check user subscription status for a channel
 func (m *postgresDBRepo) IsSubscribed(userID, channelID uint) bool {
 	var subscription models.Subscription

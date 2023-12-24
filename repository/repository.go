@@ -28,8 +28,11 @@ type DatabaseRepo interface {
 	CreateLike(like *models.Like) (uint, error)
 	DeleteLikeByID(id uint) error
 
-	CreateNotification(notification *models.Notification) error
-
 	IsSubscribed(userID, channelID uint) bool
 	ToggleSubscription(userID, channelID uint) error
+
+	GetNotificationsByUserID(userID int) ([]models.Notification, error)
+	GetUnreadNotificationsByUserID(userID uint) ([]models.Notification, error)
+	GetNotificationByID(id uint) (*models.Notification, error)
+	CreateNotification(notification *models.Notification) error
 }

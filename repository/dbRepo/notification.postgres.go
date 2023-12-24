@@ -6,6 +6,16 @@ import (
 	"github.com/raihan2bd/vidverse/models"
 )
 
+// create notification
+func (m *postgresDBRepo) CreateNotification(notification *models.Notification) error {
+	result := m.DB.Create(&notification)
+	if result.Error != nil {
+		return errors.New("failed to create notification")
+	}
+
+	return nil
+}
+
 // get all notifications by user ID
 func (m *postgresDBRepo) GetNotificationsByUserID(userID int) ([]models.Notification, error) {
 	var notifications []models.Notification
@@ -18,9 +28,9 @@ func (m *postgresDBRepo) GetNotificationsByUserID(userID int) ([]models.Notifica
 }
 
 // Get all unread notifications by user ID
-func (m *postgresDBRepo) GetUnreadNotificationsByUserID(userID int) ([]models.Notification, error) {
+func (m *postgresDBRepo) GetUnreadNotificationsByUserID(userID uint) ([]models.Notification, error) {
 	var notifications []models.Notification
-	err := m.DB.Where("user_id = ? AND is_read = ?", userID, false).Order("created_at desc").Find(&notifications).Error
+	err := m.DB.Where("receiver_id = ? AND is_read = ?", userID, false).Order("created_at desc").Find(&notifications).Error
 	if err != nil {
 		return nil, errors.New("internal server error. Please try again")
 	}
