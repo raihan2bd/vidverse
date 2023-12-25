@@ -76,8 +76,9 @@ func (m *Repo) HandleCreateOrUpdateComment(c *gin.Context) {
 		return
 	}
 
-	user, err := helpers.ValidateAndGetUserByID(m.App, user_id)
+	userID := uint(user_id.(float64))
 
+	user, err := m.App.DBMethods.GetUserByID(userID)
 	if err != nil {
 		c.IndentedJSON(400, gin.H{
 			"error": err.Error(),
@@ -85,7 +86,12 @@ func (m *Repo) HandleCreateOrUpdateComment(c *gin.Context) {
 		return
 	}
 
-	var payload models.Comment
+	var payload struct {
+		ID      uint   `json:"id"`
+		Text    string `json:"text"`
+		VideoID uint   `json:"video_id"`
+	}
+
 	err = c.BindJSON(&payload)
 	if err != nil {
 		c.IndentedJSON(400, gin.H{
@@ -97,13 +103,6 @@ func (m *Repo) HandleCreateOrUpdateComment(c *gin.Context) {
 	if payload.VideoID <= 0 {
 		c.IndentedJSON(400, gin.H{
 			"error": "Invalid Video ID",
-		})
-		return
-	}
-
-	if user.ID <= 0 {
-		c.IndentedJSON(400, gin.H{
-			"error": "Invalid User",
 		})
 		return
 	}
@@ -180,9 +179,15 @@ func (m *Repo) HandleCreateOrUpdateComment(c *gin.Context) {
 			"id":      comment_id,
 		})
 
+		if user.ID == video.Channel.UserID {
+			return
+		}
+
 		// send notification to the video owner
 		notification := models.Notification{
 			ReceiverID: video.Channel.UserID,
+			SenderID:   user.ID,
+			SenderName: user.Name,
 			VideoID:    video.ID,
 			CommentID:  comment_id,
 			IsRead:     false,
