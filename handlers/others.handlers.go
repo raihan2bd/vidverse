@@ -4,6 +4,8 @@ import (
 	"strconv"
 
 	"github.com/gin-gonic/gin"
+	"github.com/raihan2bd/vidverse/config"
+	"github.com/raihan2bd/vidverse/models"
 )
 
 func (m *Repo) HandleGetSubscribedChannels(c *gin.Context) {
@@ -14,6 +16,12 @@ func (m *Repo) HandleGetSubscribedChannels(c *gin.Context) {
 	}
 
 	userIDUint := uint(userID.(float64))
+	user, err := m.App.DBMethods.GetUserByID(userIDUint)
+	if err != nil {
+		c.JSON(500, gin.H{"error": "internal server error"})
+		return
+	}
+
 	channelID, err := strconv.Atoi(c.Param("channelID"))
 	if err != nil {
 		c.JSON(400, gin.H{"error": "invalid channel id"})
@@ -26,11 +34,41 @@ func (m *Repo) HandleGetSubscribedChannels(c *gin.Context) {
 		return
 	}
 
-	err = m.App.DBMethods.ToggleSubscription(userIDUint, uint(channelID))
+	id, err := m.App.DBMethods.ToggleSubscription(userIDUint, uint(channelID))
 	if err != nil {
 		c.JSON(500, gin.H{"error": err.Error()})
 		return
 	}
 
 	c.JSON(200, gin.H{"channels": channels})
+
+	if id == 0 {
+		return
+	}
+
+	if user.ID == channels.UserID {
+		return
+	}
+
+	// create notification
+	notification := &models.Notification{
+		ReceiverID: channels.UserID,
+		IsRead:     false,
+		SenderID:   userIDUint,
+		ChannelID:  channels.ID,
+		Type:       "subscribe",
+	}
+
+	err = m.App.DBMethods.CreateNotification(notification)
+	if err != nil {
+		return
+	}
+
+	// send notification to the user
+	m.App.NotificationChan <- &config.NotificationEvent{
+		BroadcasterID: channels.UserID,
+		Action:        "a_new_notification",
+		Data:          notification,
+	}
+
 }

@@ -234,7 +234,7 @@ func (m *postgresDBRepo) GetChannels(userID int) ([]models.CustomChannel, error)
 func (m *postgresDBRepo) GetChannelByID(id int) (*models.CustomChannelDTO, error) {
 	var channel models.CustomChannelDTO
 
-	err := m.DB.Table("channels").Select("channels.id, channels.title, channels.logo, channels.description, count(videos.id) as total_videos, count(subscriptions.id) as total_subscribers").
+	err := m.DB.Table("channels").Select("channels.id, channels.title, channels.logo, channels.description, count(videos.id) as total_videos, count(subscriptions.id) as total_subscribers, channels.user_id").
 		Joins("left join videos on videos.channel_id = channels.id").
 		Joins("left join subscriptions on subscriptions.channel_id = channels.id").
 		Where("channels.id = ?", id).
@@ -244,9 +244,6 @@ func (m *postgresDBRepo) GetChannelByID(id int) (*models.CustomChannelDTO, error
 	if err != nil {
 		return nil, errors.New("internal server error. Please try again")
 	}
-
-	fmt.Println("I'm working")
-
 	return &channel, nil
 }
 
@@ -332,8 +329,9 @@ func (m *postgresDBRepo) IsSubscribed(userID, channelID uint) bool {
 	return true
 }
 
-func (m *postgresDBRepo) ToggleSubscription(userID, channelID uint) error {
+func (m *postgresDBRepo) ToggleSubscription(userID, channelID uint) (uint, error) {
 	var subscription models.Subscription
+	var subscribed uint = 0
 	tsx := m.DB.Where("user_id = ? AND channel_id = ?", userID, channelID).First(&subscription)
 	if tsx.Error != nil {
 		subscription.UserID = userID
@@ -341,14 +339,15 @@ func (m *postgresDBRepo) ToggleSubscription(userID, channelID uint) error {
 		ts := m.DB.Create(&subscription)
 		if ts.Error != nil {
 			fmt.Println(ts.Error, "error")
-			return errors.New("failed to subscription the channel")
+			return 0, errors.New("failed to subscription the channel")
 		}
+		subscribed = 1
 	} else {
 		ts := m.DB.Unscoped().Delete(&subscription)
 		if ts.Error != nil {
-			return errors.New("failed to  unsubscribe the channel")
+			return 0, errors.New("failed to  unsubscribe the channel")
 		}
 	}
 
-	return nil
+	return subscribed, nil
 }

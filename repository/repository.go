@@ -29,7 +29,7 @@ type DatabaseRepo interface {
 	DeleteLikeByID(id uint) error
 
 	IsSubscribed(userID, channelID uint) bool
-	ToggleSubscription(userID, channelID uint) error
+	ToggleSubscription(userID, channelID uint) (uint, error)
 
 	GetNotificationsByUserID(userID int) ([]models.Notification, error)
 	GetUnreadNotificationsByUserID(userID uint) ([]models.Notification, error)

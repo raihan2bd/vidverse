@@ -171,7 +171,7 @@ func (m *Repo) HandleGetSingleVideo(c *gin.Context) {
 	} else {
 		userIDUint := uint(userID.(float64))
 		channel.IsSubscribed = m.App.DBMethods.IsSubscribed(userIDUint, video.Channel.ID)
-		_, err := m.App.DBMethods.GetLikeByVideoIDAndUserID(userIDUint, video.ID)
+		_, err := m.App.DBMethods.GetLikeByVideoIDAndUserID(video.ID, userIDUint)
 		if err != nil {
 			isLiked = false
 		} else {
@@ -603,6 +603,10 @@ func (m *Repo) HandleVideoLike(c *gin.Context) {
 			"message": "Successfully liked the video",
 			"like_id": id,
 		})
+
+		if video.Channel.UserID == user.ID {
+			return
+		}
 
 		// send notification to the video owner
 		ownerID := video.Channel.UserID

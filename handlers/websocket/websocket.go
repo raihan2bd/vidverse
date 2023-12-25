@@ -54,6 +54,22 @@ func (c *Clients) Remove(userID uint) {
 	delete(c.m, userID)
 }
 
+func (c *Clients) RemoveByConn(conn *websocket.Conn) {
+	c.Lock()
+	defer c.Unlock()
+	for k, v := range c.m {
+		if v == conn {
+			delete(c.m, k)
+		}
+	}
+}
+
+func (c *Clients) Count() int64 {
+	c.RLock()
+	defer c.RUnlock()
+	return int64(len(c.m))
+}
+
 func (c *Clients) Get(userID uint) *websocket.Conn {
 	c.RLock()
 	defer c.RUnlock()
@@ -61,8 +77,9 @@ func (c *Clients) Get(userID uint) *websocket.Conn {
 }
 
 type WsPayload struct {
-	Action string      `json:"action"`
-	Data   interface{} `json:"data"`
+	Action string          `json:"action"`
+	Data   interface{}     `json:"data,omitempty"`
+	Conn   *websocket.Conn `json:"-"`
 }
 
 type ErrorRes struct {
@@ -111,11 +128,6 @@ func (m *Repo) WSHandler(c *gin.Context) {
 	// conn.WriteJSON(WsPayload{Action: "connect", Data: "connected"})
 
 	go func() {
-		// defer func() {
-		// 	conn.Close()
-		// 	m.Clients.Remove(userID)
-		// 	m.App.NotificationChan <- &config.NotificationEvent{BroadcasterID: userID, Action: "disconnect"}
-		// }()
 
 		defer func() {
 			if r := recover(); r != nil {
@@ -130,11 +142,23 @@ func (m *Repo) WSHandler(c *gin.Context) {
 			if err != nil {
 				// Handle error and send disconnect event
 				m.App.NotificationChan <- &config.NotificationEvent{BroadcasterID: userID, Action: "disconnect"}
-				break
+				continue
 			}
 
+			switch payload.Action {
+			case "close":
+				m.Clients.RemoveByConn(conn)
+				conn.Close()
+				fmt.Println("Connection closed")
+
+			default:
+				continue
+			}
+
+			payload.Conn = conn
+
 			// Send message event
-			m.App.NotificationChan <- &config.NotificationEvent{BroadcasterID: userID, Data: payload, Action: payload.Action}
+			m.App.NotificationChan <- &config.NotificationEvent{BroadcasterID: userID, Data: payload, Action: payload.Action, Conn: payload.Conn}
 		}
 	}()
 }
@@ -158,37 +182,23 @@ func (m *Repo) HandleMessages() {
 			} else {
 				continue
 			}
-			// // conn.WriteJSON(WsPayload{Action: event.Action, Data: event.Data})
-
-			// fmt.Println("a_new_notification", event.BroadcasterID)
-
-			// // err := conn.WriteJSON(WsPayload{Action: event.Action, Data: event.Data})
-			// fmt.Println("a_new_notification", event.Data)
-			// //
-			// err := conn.WriteJSON(WsPayload{Action: "a_new_notification", Data: "notification sent"})
-			// if err != nil {
-			// 	fmt.Println(err)
-			// 	conn.Close()
-			// 	continue
-			// }
-
-			// // if err != nil {
-			// // 	fmt.Println(err)
-			// // 	conn.Close()
-			// // }
 
 		case "notifications":
 			// get clients conn from map using broadcasterID
 			conn := m.Clients.Get(event.BroadcasterID)
-			// Send message to client
-			notifications, err := m.App.DBMethods.GetUnreadNotificationsByUserID(event.BroadcasterID)
-			if err != nil {
-				fmt.Println(err)
-				notifications = []models.Notification{}
-			}
-			err = conn.WriteJSON(WsPayload{Action: event.Action, Data: notifications})
-			if err != nil {
-				conn.Close()
+			if conn == nil {
+				continue
+			} else {
+
+				// Send message to client
+				notifications, err := m.App.DBMethods.GetUnreadNotificationsByUserID(event.BroadcasterID)
+				if err != nil {
+					notifications = []models.Notification{}
+				}
+				err = conn.WriteJSON(WsPayload{Action: event.Action, Data: notifications})
+				if err != nil {
+					continue
+				}
 			}
 
 		case "disconnect":

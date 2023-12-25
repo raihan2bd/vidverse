@@ -129,6 +129,7 @@ type CustomChannelDTO struct {
 	Description     string `json:"description,omitempty"`
 	TotalSubscriber int64  `json:"total_subscriber,omitempty"`
 	TotalVideo      int64  `json:"total_video,omitempty"`
+	UserID          uint   `json:"user_id,omitempty"`
 }
 
 type Notification struct {

@@ -2,6 +2,7 @@ package config
 
 import (
 	"github.com/cloudinary/cloudinary-go/v2"
+	"github.com/gorilla/websocket"
 	"github.com/raihan2bd/vidverse/initializers"
 	"github.com/raihan2bd/vidverse/repository"
 	dbrepo "github.com/raihan2bd/vidverse/repository/dbRepo"
@@ -19,6 +20,7 @@ type NotificationEvent struct {
 	BroadcasterID uint
 	Action        string
 	Data          interface{}
+	Conn          *websocket.Conn
 }
 
 func LoadConfig() (*Application, error) {
