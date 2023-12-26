@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"fmt"
 	"net/http"
 	"strconv"
 
@@ -119,12 +120,13 @@ func (m *Repo) HandleCreateOrUpdateComment(c *gin.Context) {
 	validator := validator.New()
 	validator.IsLength(payload.Text, "text", 2, 1000)
 
-	if validator.Valid() {
+	if !validator.Valid() {
 		c.IndentedJSON(400, gin.H{
 			"error": validator.GetErrMsg(),
 		})
 		return
 	}
+	fmt.Println(payload.Text)
 
 	if payload.ID > 0 {
 		// update comment
@@ -137,7 +139,7 @@ func (m *Repo) HandleCreateOrUpdateComment(c *gin.Context) {
 		}
 
 		if comment.UserID != user.ID || user.UserRole != "admin" {
-			c.IndentedJSON(400, gin.H{
+			c.IndentedJSON(403, gin.H{
 				"error": "You are not allowed to update this comment",
 			})
 			return

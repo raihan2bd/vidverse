@@ -114,6 +114,7 @@ type CommentDTO struct {
 	UserID     uint   `json:"user_id"`
 	UserName   string `json:"user_name"`
 	UserAvatar string `json:"user_avatar"`
+	CreatedAt  string `json:"created_at,omitempty"`
 }
 
 type CustomChannel struct {

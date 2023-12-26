@@ -163,7 +163,7 @@ func (m *postgresDBRepo) GetCommentsByVideoID(id, page, limit int) ([]models.Com
 	var count int64
 	offset := (page - 1) * limit
 
-	err := m.DB.Table("comments").Select("comments.id, comments.text, comments.video_id, users.id as user_id, users.name as user_name, users.avatar as user_avatar").
+	err := m.DB.Table("comments").Select("comments.id, comments.text, comments.video_id, users.id as user_id, users.name as user_name, users.avatar as user_avatar, comments.created_at").
 		Joins("left join users on users.id = comments.user_id").
 		Where("comments.video_id = ?", id).
 		Count(&count).
