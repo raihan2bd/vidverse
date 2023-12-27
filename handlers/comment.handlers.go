@@ -33,7 +33,7 @@ func (m *Repo) HandleGetComments(c *gin.Context) {
 		return
 	}
 
-	limit, err = strconv.Atoi(c.DefaultQuery("limit", "24"))
+	limit, err = strconv.Atoi(c.DefaultQuery("limit", "16"))
 
 	if err != nil {
 		c.JSON(http.StatusNotFound, gin.H{
@@ -62,9 +62,10 @@ func (m *Repo) HandleGetComments(c *gin.Context) {
 	}
 
 	c.IndentedJSON(http.StatusOK, gin.H{
-		"page":          page,
-		"comments":      comments,
-		"has_next_page": hasNextPage,
+		"page":           page,
+		"comments":       comments,
+		"has_next_page":  hasNextPage,
+		"total_comments": count,
 	})
 }
 
