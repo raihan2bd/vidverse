@@ -138,11 +138,13 @@ func (m *Repo) HandleCreateOrUpdateComment(c *gin.Context) {
 			return
 		}
 
-		if comment.UserID != user.ID || user.UserRole != "admin" {
-			c.IndentedJSON(403, gin.H{
-				"error": "You are not allowed to update this comment",
-			})
-			return
+		if comment.UserID != user.ID {
+			if user.UserRole != "admin" {
+				c.IndentedJSON(403, gin.H{
+					"error": "You are not allowed to update this comment",
+				})
+				return
+			}
 		}
 
 		comment.Text = payload.Text
@@ -215,6 +217,7 @@ func (m *Repo) HandleCreateOrUpdateComment(c *gin.Context) {
 func (m *Repo) HandleDeleteComment(c *gin.Context) {
 	commentID, err := strconv.Atoi(c.Params.ByName("commentID"))
 	if err != nil {
+		fmt.Println(err)
 		c.JSON(400, gin.H{"error": "The comment you are trying to delete does not exist"})
 		return
 	}
@@ -231,7 +234,7 @@ func (m *Repo) HandleDeleteComment(c *gin.Context) {
 	user, err := m.App.DBMethods.GetUserByID(userID)
 	if err != nil {
 		c.IndentedJSON(400, gin.H{
-			"error": err.Error(),
+			"error": "You are not allowed to delete this comment",
 		})
 		return
 	}
@@ -244,12 +247,21 @@ func (m *Repo) HandleDeleteComment(c *gin.Context) {
 		return
 	}
 
-	if comment.UserID != user.ID || user.UserRole != "admin" {
-		c.IndentedJSON(400, gin.H{
-			"error": "You are not allowed to delete this comment",
-		})
-		return
+	if comment.UserID != user.ID {
+		if user.UserRole != "admin" {
+			c.IndentedJSON(400, gin.H{
+				"error": "You are not allowed to delete this comment",
+			})
+			return
+		}
 	}
+
+	// if !(comment.UserID != user.ID) || (user.UserRole != "admin") {
+	// 	c.IndentedJSON(400, gin.H{
+	// 		"error": "You are not allowed to delete this comment",
+	// 	})
+	// 	return
+	// }
 
 	err = m.App.DBMethods.DeleteCommentByID(uint(commentID))
 	if err != nil {
