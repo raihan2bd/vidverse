@@ -204,7 +204,7 @@ func (m *Repo) HandleCreateOrUpdateComment(c *gin.Context) {
 
 		// send notification to the comment owner
 		m.App.NotificationChan <- &config.NotificationEvent{
-			BroadcasterID: user.ID,
+			BroadcasterID: video.Channel.UserID,
 			Action:        "a_new_notification",
 			Data:          notification,
 		}
