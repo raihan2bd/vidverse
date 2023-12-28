@@ -7,7 +7,6 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/raihan2bd/vidverse/config"
-	"github.com/raihan2bd/vidverse/helpers"
 	"github.com/raihan2bd/vidverse/models"
 	validator "github.com/raihan2bd/vidverse/validators"
 )
@@ -228,7 +227,8 @@ func (m *Repo) HandleDeleteComment(c *gin.Context) {
 		return
 	}
 
-	user, err := helpers.ValidateAndGetUserByID(m.App, user_id)
+	userID := uint(user_id.(float64))
+	user, err := m.App.DBMethods.GetUserByID(userID)
 	if err != nil {
 		c.IndentedJSON(400, gin.H{
 			"error": err.Error(),
@@ -262,4 +262,10 @@ func (m *Repo) HandleDeleteComment(c *gin.Context) {
 	c.JSON(200, gin.H{
 		"message": "Comment deleted successfully",
 	})
+
+	// delete notification
+	err = m.App.DBMethods.DeleteNotificationByCommentID(uint(commentID))
+	if err != nil {
+		return
+	}
 }
