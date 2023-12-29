@@ -60,7 +60,33 @@ func (m *Repo) HandleGetChannel(c *gin.Context) {
 
 // create new channel
 func (m *Repo) HandleCreateChannel(c *gin.Context) {
-	fmt.Println("Create channel handler")
+	// get user id from context
+	user_id, ok := c.Get("user_id")
+	if !ok {
+		c.JSON(401, gin.H{"error": "Unauthorized"})
+		return
+	}
+
+	// convert user id to uint
+	userID := uint(user_id.(float64))
+
+	// fetch user from db
+	user, err := m.App.DBMethods.GetUserByID(userID)
+	if err != nil {
+		c.JSON(401, gin.H{"error": "Unauthorized"})
+		return
+	}
+
+	fmt.Println(user.UserRole)
+
+	// check user role
+	if user.UserRole != "author" {
+		if user.UserRole != "admin" {
+			c.JSON(http.StatusUnauthorized, gin.H{"error": "You are not authorized to create channel"})
+			return
+		}
+	}
+
 	// get channel logo from form
 	channelLogo, logoHeader, err := c.Request.FormFile("logo")
 	if err != nil {
@@ -108,21 +134,16 @@ func (m *Repo) HandleCreateChannel(c *gin.Context) {
 		return
 	}
 
-	channel := models.Channel{Title: title, Description: description, Logo: resp.SecureURL, UserID: 1}
+	channel := models.Channel{Title: title, Description: description, Logo: resp.SecureURL, UserID: user.ID}
 
-	result := initializers.DB.Create(&channel)
-
-	if result.Error != nil {
-		fmt.Println(result.Error)
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"message": "Failed to create the channel",
-		})
-
+	var id uint
+	id, err = m.App.DBMethods.CreateChannel(&channel)
+	if err != nil {
+		c.JSON(500, gin.H{"error": err.Error()})
 		return
 	}
 
-	c.JSON(200, gin.H{"message": "Channel created successfully", "channel_id": channel.ID})
-
+	c.JSON(200, gin.H{"message": "Channel created successfully", "channel_id": id})
 }
 
 // delete channel

@@ -42,9 +42,9 @@ func NewRouter() *gin.Engine {
 	v1.GET("/likes/:videoID", IsLoggedIn, handlers.Methods.HandleVideoLike)
 
 	v1.GET("/channels", handlers.Methods.HandleGetChannels)
-	v1.POST("/channels", handlers.Methods.HandleCreateChannel)
+	v1.POST("/channels", isAuthor, handlers.Methods.HandleCreateChannel)
 	v1.GET("/channels/:channelID", handlers.Methods.HandleGetChannel)
-	v1.DELETE("/channels/:channelID", handlers.Methods.HandleDeleteChannel)
+	v1.DELETE("/channels/:channelID", isAuthor, handlers.Methods.HandleDeleteChannel)
 
 	// websocket handler
 	v1.GET("/ws", websocket.Methods.WSHandler)

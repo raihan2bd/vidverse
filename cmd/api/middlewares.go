@@ -76,3 +76,40 @@ func IsAdmin(c *gin.Context) {
 	c.Set("user_id", claims["sub"])
 	c.Next()
 }
+
+func isAuthor(c *gin.Context) {
+	token := c.Request.Header.Get("Authorization")
+	if token == "" {
+		c.Next()
+		return
+	}
+	claims, err := helpers.DecodeToken(token)
+
+	if err != nil {
+		c.IndentedJSON(401, gin.H{
+			"error": "unauthorized",
+		})
+		return
+	}
+
+	if !helpers.ValidateToken(claims) {
+		if err != nil {
+			c.IndentedJSON(401, gin.H{
+				"error": "unauthorized",
+			})
+		}
+		return
+	}
+
+	if claims["user_role"] != "author" {
+		if claims["user_role"] != "admin" {
+			c.IndentedJSON(403, gin.H{
+				"error": "forbidden",
+			})
+			return
+		}
+	}
+
+	c.Set("user_id", claims["sub"])
+	c.Next()
+}

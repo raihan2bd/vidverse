@@ -22,6 +22,7 @@ type DatabaseRepo interface {
 	DeleteNotificationByCommentID(commentID uint) error
 
 	GetChannels(id int) ([]models.CustomChannel, error)
+	CreateChannel(channel *models.Channel) (uint, error)
 	GetChannelByID(id int) (*models.CustomChannelDTO, error)
 	DeleteChannelByID(id int) *models.CustomError
 
