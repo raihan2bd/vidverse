@@ -42,6 +42,8 @@ type Channel struct {
 	Logo          string         `gorm:"type:varchar(255);" json:"logo"`
 	UserID        uint           `json:"user_id"`
 	LogoPublicID  string         `gorm:"type:varchar(255);not null" json:"-"`
+	Cover         string         `gorm:"type:varchar(255);not null;default:'https://res.cloudinary.com/dog87elav/image/upload/v1703925125/vidverse/uploads/channel_cover_images/glscd6mufqiye9zxlokt.jpg'" json:"cover"`
+	CoverPublicID string         `gorm:"type:varchar(255)" json:"-"`
 	User          User           `gorm:"foreignKey:UserID" json:"user"`
 	Videos        []Video        `gorm:"foreignKey:ChannelID" json:"videos"`
 	Subscribers   []Subscription `json:"subscribers,omitempty"`
@@ -131,6 +133,9 @@ type CustomChannelDTO struct {
 	TotalSubscriber int64  `json:"total_subscriber,omitempty"`
 	TotalVideo      int64  `json:"total_video,omitempty"`
 	UserID          uint   `json:"user_id,omitempty"`
+	LogoPublicID    string `json:"-"`
+	Cover           string `json:"cover,omitempty"`
+	CoverPublicID   string `json:"-"`
 }
 
 type Notification struct {

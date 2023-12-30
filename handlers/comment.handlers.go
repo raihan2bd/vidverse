@@ -256,13 +256,6 @@ func (m *Repo) HandleDeleteComment(c *gin.Context) {
 		}
 	}
 
-	// if !(comment.UserID != user.ID) || (user.UserRole != "admin") {
-	// 	c.IndentedJSON(400, gin.H{
-	// 		"error": "You are not allowed to delete this comment",
-	// 	})
-	// 	return
-	// }
-
 	err = m.App.DBMethods.DeleteCommentByID(uint(commentID))
 	if err != nil {
 		c.IndentedJSON(500, gin.H{

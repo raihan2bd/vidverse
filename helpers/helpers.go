@@ -1,11 +1,15 @@
 package helpers
 
 import (
+	"context"
 	"errors"
 	"fmt"
+	"mime/multipart"
 	"os"
 	"time"
 
+	"github.com/cloudinary/cloudinary-go/v2"
+	"github.com/cloudinary/cloudinary-go/v2/api/uploader"
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/raihan2bd/vidverse/config"
 	"github.com/raihan2bd/vidverse/models"
@@ -64,4 +68,55 @@ func ValidateAndGetUserByID(app *config.Application, id any) (*models.User, erro
 	user.Password = ""
 
 	return user, nil
+}
+
+// Upload image to cloudinary
+func UploadImageToCloudinary(ctx context.Context, CLD *cloudinary.Cloudinary, image multipart.File, uploadPath ...string) (string, string, error) {
+	folder := "vidverse/uploads/images"
+	if len(uploadPath) > 0 {
+		folder = uploadPath[0]
+	}
+
+	resp, err := CLD.Upload.Upload(ctx, image, uploader.UploadParams{
+		Folder: folder,
+	})
+	if err != nil {
+		return "", "", err
+	}
+	return resp.SecureURL, resp.PublicID, nil
+}
+
+// delete image from cloudinary
+func DeleteImageFromCloudinary(ctx context.Context, CLD *cloudinary.Cloudinary, publicID string) error {
+	result, err := CLD.Upload.Destroy(ctx, uploader.DestroyParams{PublicID: publicID, ResourceType: "image"})
+	if err != nil {
+		return errors.New("failed to delete image")
+	}
+
+	if result.Result != "ok" {
+		return errors.New("failed to delete image")
+	}
+
+	return nil
+}
+
+// Upload video to cloudinary
+func UploadVideoToCloudinary(ctx context.Context, CLD *cloudinary.Cloudinary, video multipart.File) (string, string, error) {
+	folder := "vidverse/uploads/videos"
+	resp, err := CLD.Upload.Upload(ctx, video, uploader.UploadParams{
+		Folder: folder,
+	})
+	if err != nil {
+		return "", "", err
+	}
+	return resp.SecureURL, resp.PublicID, nil
+}
+
+// delete video from cloudinary
+func DeleteVideoFromCloudinary(ctx context.Context, CLD *cloudinary.Cloudinary, publicID string) error {
+	_, err := CLD.Upload.Destroy(ctx, uploader.DestroyParams{PublicID: publicID, ResourceType: "video"})
+	if err != nil {
+		return err
+	}
+	return nil
 }

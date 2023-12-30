@@ -169,23 +169,6 @@ func (m *postgresDBRepo) GetChannels(userID int) ([]models.CustomChannel, error)
 	return channels, nil
 }
 
-// get channel details
-func (m *postgresDBRepo) GetChannelByID(id int) (*models.CustomChannelDTO, error) {
-	var channel models.CustomChannelDTO
-
-	err := m.DB.Table("channels").Select("channels.id, channels.title, channels.logo, channels.description, count(videos.id) as total_videos, count(subscriptions.id) as total_subscribers, channels.user_id").
-		Joins("left join videos on videos.channel_id = channels.id").
-		Joins("left join subscriptions on subscriptions.channel_id = channels.id").
-		Where("channels.id = ?", id).
-		Group("channels.id").
-		Find(&channel).Error
-
-	if err != nil {
-		return nil, errors.New("internal server error. Please try again")
-	}
-	return &channel, nil
-}
-
 // delete channel By Id
 func (m *postgresDBRepo) DeleteChannelByID(id int) *models.CustomError {
 	// get channel by id
