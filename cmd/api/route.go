@@ -47,6 +47,8 @@ func NewRouter() *gin.Engine {
 	v1.GET("/channels/:channelID", handlers.Methods.HandleGetChannel)
 	v1.DELETE("/channels/:channelID", isAuthor, handlers.Methods.HandleDeleteChannel)
 
+	v1.POST("/contact_us", HasToken, handlers.Methods.HandleContactUs)
+
 	// websocket handler
 	v1.GET("/ws", websocket.Methods.WSHandler)
 

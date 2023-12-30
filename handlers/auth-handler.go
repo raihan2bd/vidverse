@@ -87,6 +87,7 @@ func (m *Repo) LoginHandler(c *gin.Context) {
 	userResponse.ID = user.ID
 	userResponse.UserRole = user.UserRole
 	userResponse.Avatar = user.Avatar
+	userResponse.Username = user.Name
 
 	// send it as a response
 	c.JSON(http.StatusOK, gin.H{

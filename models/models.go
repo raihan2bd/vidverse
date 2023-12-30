@@ -150,3 +150,12 @@ type Notification struct {
 	LikeID     uint   `gorm:"foreignKey:LikeID" json:"like_id,omitempty"`
 	Type       string `gorm:"type:varchar(100);not null;" json:"type"`
 }
+
+type ContactUs struct {
+	CustomModel
+	Name        string `gorm:"type:varchar(100);not null" json:"name"`
+	Email       string `gorm:"type:varchar(255);not null" json:"email"`
+	Message     string `gorm:"type:text;size:500;not null" json:"message"`
+	IsForAuthor bool   `gorm:"type:boolean;not null;default:false" json:"is_for_author"`
+	UserID      uint   `gorm:"foreignKey:UserID" json:"user_id,omitempty"`
+}

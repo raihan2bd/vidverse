@@ -273,3 +273,26 @@ func (m *postgresDBRepo) ToggleSubscription(userID, channelID uint) (uint, error
 
 	return subscribed, nil
 }
+
+func (m *postgresDBRepo) CreateContactUs(contactUs *models.ContactUs) error {
+	result := m.DB.Create(&contactUs)
+	if result.Error != nil {
+		return errors.New("failed to create contact us")
+	}
+
+	return nil
+}
+
+func (m *postgresDBRepo) IsContactUsSubmitted(email string) bool {
+	var contactUs models.ContactUs
+	result := m.DB.Table("contact_us").Select("contact_us.id").Where("contact_us.email = ?", email).First(&contactUs)
+
+	if result.Error != nil {
+		return false
+	}
+
+	if contactUs.ID == 0 {
+		return false
+	}
+	return true
+}

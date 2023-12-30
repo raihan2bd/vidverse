@@ -38,4 +38,7 @@ type DatabaseRepo interface {
 	GetUnreadNotificationsByUserID(userID uint) ([]models.Notification, error)
 	GetNotificationByID(id uint) (*models.Notification, error)
 	CreateNotification(notification *models.Notification) error
+
+	CreateContactUs(contactUs *models.ContactUs) error
+	IsContactUsSubmitted(email string) bool
 }
