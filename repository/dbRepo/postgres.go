@@ -1,11 +1,9 @@
 package dbrepo
 
 import (
-	"context"
 	"errors"
 	"fmt"
 
-	"github.com/cloudinary/cloudinary-go/v2/api/uploader"
 	"github.com/raihan2bd/vidverse/models"
 	"gorm.io/gorm"
 )
@@ -155,50 +153,6 @@ func (m *postgresDBRepo) GetVideosByChannelID(id, page, limit int) ([]models.Vid
 	}
 
 	return videos, count, nil
-}
-
-// Get All the channels
-func (m *postgresDBRepo) GetChannels(userID int) ([]models.CustomChannel, error) {
-	var channels []models.CustomChannel
-	err := m.DB.Table("channels").Select("channels.id, channels.title, channels.logo").Where("channels.user_id = ?", userID).
-		Find(&channels).Error
-	if err != nil {
-		return nil, errors.New("internal server error. Please try again")
-	}
-
-	return channels, nil
-}
-
-// delete channel By Id
-func (m *postgresDBRepo) DeleteChannelByID(id int) *models.CustomError {
-	// get channel by id
-	var channel models.Channel
-	result := m.DB.First(&channel, id)
-
-	if result.Error != nil {
-		return &models.CustomError{Status: 404, Err: errors.New("the channel you want to delete is not found")}
-	}
-
-	// delete channel with transaction
-	tx := m.DB.Begin()
-	tx.Delete(&channel)
-
-	if tx.Error != nil {
-		tx.Rollback()
-		return &models.CustomError{Status: 500, Err: errors.New("failed to delete the channel")}
-	}
-
-	// delete the logoImage
-	_, err := m.CLD.Upload.Destroy(context.Background(), uploader.DestroyParams{PublicID: channel.LogoPublicID, ResourceType: "image"})
-
-	if err != nil {
-		tx.Rollback()
-		return &models.CustomError{Status: 500, Err: errors.New("failed to delete the channel")}
-	}
-
-	tx.Commit()
-
-	return nil
 }
 
 // Get like by videoID and userID

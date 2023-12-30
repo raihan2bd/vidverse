@@ -12,11 +12,62 @@ import (
 	validator "github.com/raihan2bd/vidverse/validators"
 )
 
+// Get channel by user id with details
+func (m *Repo) HandleGetChannelsWithDetailsByUserID(c *gin.Context) {
+	user_id, ok := c.Get("user_id")
+	if !ok {
+		c.JSON(401, gin.H{"error": "Unauthorized"})
+		return
+	}
+
+	// convert user id to uint
+	userID := uint(user_id.(float64))
+	var user *models.User
+	user, err := m.App.DBMethods.GetUserByID(userID)
+	if err != nil {
+		c.JSON(401, gin.H{"error": "Unauthorized"})
+		return
+	}
+
+	// validate user role
+	if user.UserRole != "admin" {
+		if user.UserRole != "author" {
+			c.JSON(http.StatusUnauthorized, gin.H{"error": "You are not authorized to get channels"})
+			return
+		}
+	}
+
+	var channels []models.CustomChannelDTO
+	channels, err = m.App.DBMethods.GetChannelsWithDetailsByUserID(userID)
+	if err != nil {
+		c.JSON(500, gin.H{"error": "Failed to get channels"})
+		return
+	}
+
+	c.JSON(200, gin.H{"channels": channels})
+}
+
 // Get Channels
 func (m *Repo) HandleGetChannels(c *gin.Context) {
 	var channels []models.CustomChannel
-	userID := 1
-	channels, err := m.App.DBMethods.GetChannels(userID)
+
+	user_id, ok := c.Get("user_id")
+	if !ok {
+		c.JSON(401, gin.H{"error": "Unauthorized"})
+		return
+	}
+
+	// convert user id to uint
+	userIDUnt := uint(user_id.(float64))
+	userID, err := strconv.Atoi(fmt.Sprintf("%v", userIDUnt))
+
+	if err != nil {
+		c.JSON(401, gin.H{"error": "Unauthorized"})
+
+		return
+	}
+
+	channels, err = m.App.DBMethods.GetChannels(userID)
 
 	if err != nil {
 		c.JSON(http.StatusNotFound, gin.H{

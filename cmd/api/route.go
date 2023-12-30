@@ -41,7 +41,8 @@ func NewRouter() *gin.Engine {
 
 	v1.GET("/likes/:videoID", IsLoggedIn, handlers.Methods.HandleVideoLike)
 
-	v1.GET("/channels", handlers.Methods.HandleGetChannels)
+	v1.GET("/channels", isAuthor, handlers.Methods.HandleGetChannels)
+	v1.GET("/channels_by_user_with_details", isAuthor, handlers.Methods.HandleGetChannelsWithDetailsByUserID)
 	v1.POST("/channels", isAuthor, handlers.Methods.HandleCreateChannel)
 	v1.PATCH("/channels/:channelID", isAuthor, handlers.Methods.HandleEditChannel)
 	v1.GET("/channels/:channelID", handlers.Methods.HandleGetChannel)

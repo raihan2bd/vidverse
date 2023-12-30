@@ -1,8 +1,10 @@
 package dbrepo
 
 import (
+	"context"
 	"errors"
 
+	"github.com/cloudinary/cloudinary-go/v2/api/uploader"
 	"github.com/raihan2bd/vidverse/models"
 )
 
@@ -30,6 +32,69 @@ func (m *postgresDBRepo) CreateChannel(channel *models.Channel) (uint, error) {
 		return 0, errors.New("failed to create the channel. please try again later")
 	}
 	return channel.ID, nil
+}
+
+// Get All the channels
+func (m *postgresDBRepo) GetChannels(userID int) ([]models.CustomChannel, error) {
+	var channels []models.CustomChannel
+	err := m.DB.Table("channels").Select("channels.id, channels.title, channels.logo").Where("channels.user_id = ?", userID).
+		Find(&channels).Error
+	if err != nil {
+		return nil, errors.New("internal server error. Please try again")
+	}
+
+	return channels, nil
+}
+
+// Get channel by user id with details
+func (m *postgresDBRepo) GetChannelsWithDetailsByUserID(userID uint) ([]models.CustomChannelDTO, error) {
+	var channels []models.CustomChannelDTO
+
+	err := m.DB.Table("channels").Select("channels.id, channels.title, channels.logo, channels.description, channels.cover, count(videos.id) as total_videos, count(subscriptions.id) as total_subscribers, channels.user_id").
+		Joins("left join videos on videos.channel_id = channels.id").
+		Joins("left join subscriptions on subscriptions.channel_id = channels.id").
+		Where("channels.user_id = ?", userID).
+		Group("channels.id").
+		Order("channels.created_at asc").
+		Find(&channels).Error
+
+	if err != nil {
+		return nil, errors.New("internal server error. Please try again")
+	}
+
+	return channels, nil
+}
+
+// delete channel By Id
+func (m *postgresDBRepo) DeleteChannelByID(id int) *models.CustomError {
+	// get channel by id
+	var channel models.Channel
+	result := m.DB.First(&channel, id)
+
+	if result.Error != nil {
+		return &models.CustomError{Status: 404, Err: errors.New("the channel you want to delete is not found")}
+	}
+
+	// delete channel with transaction
+	tx := m.DB.Begin()
+	tx.Delete(&channel)
+
+	if tx.Error != nil {
+		tx.Rollback()
+		return &models.CustomError{Status: 500, Err: errors.New("failed to delete the channel")}
+	}
+
+	// delete the logoImage
+	_, err := m.CLD.Upload.Destroy(context.Background(), uploader.DestroyParams{PublicID: channel.LogoPublicID, ResourceType: "image"})
+
+	if err != nil {
+		tx.Rollback()
+		return &models.CustomError{Status: 500, Err: errors.New("failed to delete the channel")}
+	}
+
+	tx.Commit()
+
+	return nil
 }
 
 // Update channel
