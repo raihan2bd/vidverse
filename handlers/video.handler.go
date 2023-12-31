@@ -187,6 +187,7 @@ func (m *Repo) HandleGetSingleVideo(c *gin.Context) {
 		"channel":     channel,
 		"likes":       len(video.Likes),
 		"views":       video.Views,
+		"thumb":       video.Thumb,
 		"is_liked":    isLiked,
 	})
 

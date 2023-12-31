@@ -1,10 +1,8 @@
 package dbrepo
 
 import (
-	"context"
 	"errors"
 
-	"github.com/cloudinary/cloudinary-go/v2/api/uploader"
 	"github.com/raihan2bd/vidverse/models"
 )
 
@@ -69,30 +67,22 @@ func (m *postgresDBRepo) GetChannelsWithDetailsByUserID(userID uint) ([]models.C
 func (m *postgresDBRepo) DeleteChannelByID(id int) *models.CustomError {
 	// get channel by id
 	var channel models.Channel
-	result := m.DB.First(&channel, id)
+	result := m.DB.Table("channels").Where("id = ?", id).First(&channel)
 
 	if result.Error != nil {
 		return &models.CustomError{Status: 404, Err: errors.New("the channel you want to delete is not found")}
 	}
 
-	// delete channel with transaction
-	tx := m.DB.Begin()
-	tx.Delete(&channel)
-
-	if tx.Error != nil {
-		tx.Rollback()
+	// delete the channel
+	result = m.DB.Unscoped().Delete(&channel)
+	if result.Error != nil {
 		return &models.CustomError{Status: 500, Err: errors.New("failed to delete the channel")}
 	}
 
-	// delete the logoImage
-	_, err := m.CLD.Upload.Destroy(context.Background(), uploader.DestroyParams{PublicID: channel.LogoPublicID, ResourceType: "image"})
-
-	if err != nil {
-		tx.Rollback()
-		return &models.CustomError{Status: 500, Err: errors.New("failed to delete the channel")}
+	if channel.LogoPublicID != "" {
+		// delete the logo from cloudinary
+		_ = m.DeleteImageFromCloudinary(channel.LogoPublicID)
 	}
-
-	tx.Commit()
 
 	return nil
 }

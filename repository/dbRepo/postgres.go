@@ -176,6 +176,20 @@ func (m *postgresDBRepo) DeleteVideoFromCloudinary(publicID string) error {
 	ctx := context.Background()
 	result, err := m.CLD.Upload.Destroy(ctx, uploader.DestroyParams{PublicID: publicID, ResourceType: "video"})
 	if err != nil {
+		return errors.New("failed to delete the video")
+	}
+
+	if result.Result != "ok" {
+		return errors.New("failed to delete the video")
+	}
+
+	return nil
+}
+
+func (m *postgresDBRepo) DeleteImageFromCloudinary(publicID string) error {
+	ctx := context.Background()
+	result, err := m.CLD.Upload.Destroy(ctx, uploader.DestroyParams{PublicID: publicID, ResourceType: "image"})
+	if err != nil {
 		return errors.New("failed to delete image")
 	}
 
