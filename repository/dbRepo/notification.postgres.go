@@ -59,6 +59,16 @@ func (m *postgresDBRepo) DeleteNotificationByID(id uint) error {
 	return nil
 }
 
+// Delete notification by ID
+func (m *postgresDBRepo) DeleteNotificationsByChannelID(id uint) error {
+	result := m.DB.Unscoped().Where("channel_id = ?", id).Delete(&models.Notification{})
+	if result.Error != nil {
+		return errors.New("something went wrong. failed to delete the notifications")
+	}
+
+	return nil
+}
+
 // delete all notifications by user ID and is_read = true and created_at < 30 days
 func (m *postgresDBRepo) DeleteAllNotificationsByUserID(userID int) error {
 	result := m.DB.Unscoped().Where("user_id = ? AND is_read = ? AND created_at < now() - interval '30 days'", userID, true).Delete(&models.Notification{})

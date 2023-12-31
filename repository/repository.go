@@ -13,6 +13,9 @@ type DatabaseRepo interface {
 	GetVideoByID(id int) (*models.Video, error)
 	GetVideosByChannelID(id, page, limit int) ([]models.VideoDTO, int64, error)
 	DeleteVideoByID(id int) error
+	FindAllVideoIDByChannelID(id uint) ([]uint, error)
+	DeleteAllVideoIDByChannelID(id uint) error
+	DeleteVideoFromCloudinary(publicID string) error
 
 	GetCommentsByVideoID(id, page, limit int) ([]models.CommentDTO, int64, error)
 	GetCommentByID(id uint) (*models.Comment, error)
@@ -39,6 +42,7 @@ type DatabaseRepo interface {
 	GetUnreadNotificationsByUserID(userID uint) ([]models.Notification, error)
 	GetNotificationByID(id uint) (*models.Notification, error)
 	CreateNotification(notification *models.Notification) error
+	DeleteNotificationsByChannelID(id uint) error
 
 	CreateContactUs(contactUs *models.ContactUs) error
 	IsContactUsSubmitted(email string) bool

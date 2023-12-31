@@ -382,4 +382,37 @@ func (m *Repo) HandleDeleteChannel(c *gin.Context) {
 	}
 
 	c.JSON(200, gin.H{"message": "Channel deleted successfully"})
+
+	// delete logo from cloudinary if exists
+	if channel.LogoPublicID != "" {
+		ctx := context.Background()
+		err = helpers.DeleteImageFromCloudinary(ctx, m.App.CLD, channel.LogoPublicID)
+		if err != nil {
+			// do nothing
+			fmt.Println(err)
+		}
+	}
+
+	// cover image delete
+	if channel.CoverPublicID != "" {
+		ctx := context.Background()
+		err = helpers.DeleteImageFromCloudinary(ctx, m.App.CLD, channel.CoverPublicID)
+		if err != nil {
+			// do nothing
+			fmt.Println(err)
+		}
+	}
+
+	// delete all videos by channelID
+	err = m.App.DBMethods.DeleteAllVideoIDByChannelID(channel.ID)
+	if err != nil {
+		fmt.Println(err)
+	}
+
+	// delete notification by channelID
+	err = m.App.DBMethods.DeleteNotificationsByChannelID(channel.ID)
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
 }

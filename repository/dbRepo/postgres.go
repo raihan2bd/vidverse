@@ -1,9 +1,11 @@
 package dbrepo
 
 import (
+	"context"
 	"errors"
 	"fmt"
 
+	"github.com/cloudinary/cloudinary-go/v2/api/uploader"
 	"github.com/raihan2bd/vidverse/models"
 	"gorm.io/gorm"
 )
@@ -168,6 +170,76 @@ func (m *postgresDBRepo) GetLikeByVideoIDAndUserID(videoID, userID uint) (*model
 	}
 
 	return &like, nil
+}
+
+func (m *postgresDBRepo) DeleteVideoFromCloudinary(publicID string) error {
+	ctx := context.Background()
+	result, err := m.CLD.Upload.Destroy(ctx, uploader.DestroyParams{PublicID: publicID, ResourceType: "video"})
+	if err != nil {
+		return errors.New("failed to delete image")
+	}
+
+	if result.Result != "ok" {
+		return errors.New("failed to delete image")
+	}
+
+	return nil
+}
+
+// Delete video with its related data
+func (m *postgresDBRepo) DeleteVideoWithRelatedData(videoID uint) error {
+	// delete video from cloudinary
+	// select publicID from videos where id = videoID
+	var publicID string
+	err := m.DB.Table("videos").Select("videos.public_id").Where("videos.id = ?", videoID).First(&publicID).Error
+	if err != nil {
+		return errors.New("failed to delete the video")
+	}
+
+	// delete video from db
+	result := m.DB.Unscoped().Delete(&models.Video{}, videoID)
+	if result.Error != nil {
+		return errors.New("something went wrong. failed to delete the video")
+	}
+
+	// delete video from cloudinary
+	_ = m.DeleteVideoFromCloudinary(publicID)
+
+	// delete comments
+	_ = m.DB.Unscoped().Where("video_id = ?", videoID).Delete(&models.Comment{}).Error
+
+	// delete likes
+	_ = m.DB.Unscoped().Where("video_id = ?", videoID).Delete(&models.Like{}).Error
+
+	// delete notifications
+	_ = m.DB.Unscoped().Where("video_id = ?", videoID).Delete(&models.Notification{}).Error
+
+	return nil
+
+}
+
+func (m *postgresDBRepo) FindAllVideoIDByChannelID(id uint) ([]uint, error) {
+	var videoIDs []uint
+	err := m.DB.Table("videos").Select("videos.id").Where("channel_id = ?", id).Find(&videoIDs).Error
+	if err != nil {
+		return nil, errors.New("internal server error. Please try again")
+	}
+
+	return videoIDs, nil
+}
+
+func (m *postgresDBRepo) DeleteAllVideoIDByChannelID(id uint) error {
+	var videoIDs []uint
+	err := m.DB.Table("videos").Select("videos.id").Where("channel_id = ?", id).Find(&videoIDs).Error
+	if err != nil {
+		return errors.New("internal server error. Please try again")
+	}
+
+	for _, videoID := range videoIDs {
+		go m.DeleteVideoWithRelatedData(videoID)
+	}
+
+	return nil
 }
 
 // create like
