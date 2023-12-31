@@ -50,7 +50,7 @@ func (m *postgresDBRepo) GetChannels(userID int) ([]models.CustomChannel, error)
 func (m *postgresDBRepo) GetChannelsWithDetailsByUserID(userID uint) ([]models.CustomChannelDTO, error) {
 	var channels []models.CustomChannelDTO
 
-	err := m.DB.Table("channels").Select("channels.id, channels.title, channels.logo, channels.description, channels.cover, count(videos.id) as total_videos, count(subscriptions.id) as total_subscribers, channels.user_id").
+	err := m.DB.Table("channels").Select("channels.id, channels.title, channels.logo, channels.description, channels.cover, count(videos.id) as total_video, count(subscriptions.id) as total_subscriber, channels.user_id").
 		Joins("left join videos on videos.channel_id = channels.id").
 		Joins("left join subscriptions on subscriptions.channel_id = channels.id").
 		Where("channels.user_id = ?", userID).
