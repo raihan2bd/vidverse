@@ -70,16 +70,17 @@ type ChannelPayload struct {
 
 type Video struct {
 	CustomModel
-	Title       string    `gorm:"type:varchar(255);not null" json:"title,omitempty" binding:"required,min=2,max=255"`
-	Description string    `gorm:"type:text;size:500;not null" json:"description,omitempty" binding:"required,min=2,max=500"`
-	PublicID    string    `gorm:"type:varchar(255);not null" json:"-"`
-	SecureURL   string    `gorm:"type:varchar(255);not null" json:"secure_url,omitempty"`
-	ChannelID   uint      `json:"channel_id,omitempty"`
-	Channel     Channel   `gorm:"foreignKey:ChannelID" json:"channel,omitempty"`
-	Thumb       string    `gorm:"type:varchar(255)" json:"tumb,omitempty"`
-	Likes       []Like    `json:"likes,omitempty"`
-	Comments    []Comment `json:"comments,omitempty"`
-	Views       int64     `gorm:"type:bigint;not null;default:0" json:"views,omitempty"`
+	Title         string    `gorm:"type:varchar(255);not null" json:"title,omitempty" binding:"required,min=2,max=255"`
+	Description   string    `gorm:"type:text;size:500;not null" json:"description,omitempty" binding:"required,min=2,max=500"`
+	PublicID      string    `gorm:"type:varchar(255);not null" json:"-"`
+	SecureURL     string    `gorm:"type:varchar(255);not null" json:"secure_url,omitempty"`
+	ChannelID     uint      `json:"channel_id,omitempty"`
+	Channel       Channel   `gorm:"foreignKey:ChannelID" json:"channel,omitempty"`
+	Thumb         string    `gorm:"type:varchar(255)" json:"tumb,omitempty"`
+	Likes         []Like    `json:"likes,omitempty"`
+	Comments      []Comment `json:"comments,omitempty"`
+	Views         int64     `gorm:"type:bigint;not null;default:0" json:"views,omitempty"`
+	ThumbPublicID string    `gorm:"type:varchar(255)" json:"-"`
 }
 
 type VideoDTO struct {

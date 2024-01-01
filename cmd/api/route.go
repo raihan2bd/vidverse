@@ -26,7 +26,8 @@ func NewRouter() *gin.Engine {
 	v1.POST("/auth/signup", handlers.Methods.SignupHandler)
 
 	v1.GET("/videos", handlers.Methods.HandleGetAllVideos)
-	v1.POST("/videos", IsAdmin, handlers.Methods.HandleCreateVideo)
+	v1.POST("/videos", isAuthor, handlers.Methods.HandleCreateVideo)
+	v1.POST("/videos/:videoID", isAuthor, handlers.Methods.HandleUpdateVideo)
 	v1.GET("/get_videos/:channelID", handlers.Methods.HandleGetVideosByChannelID)
 	v1.GET("/videos/:videoID", HasToken, handlers.Methods.HandleGetSingleVideo)
 	v1.DELETE("/videos/:videoID", handlers.Methods.HandleDeleteVidoe)

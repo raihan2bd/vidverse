@@ -101,8 +101,11 @@ func DeleteImageFromCloudinary(ctx context.Context, CLD *cloudinary.Cloudinary, 
 }
 
 // Upload video to cloudinary
-func UploadVideoToCloudinary(ctx context.Context, CLD *cloudinary.Cloudinary, video multipart.File) (string, string, error) {
+func UploadVideoToCloudinary(ctx context.Context, CLD *cloudinary.Cloudinary, video multipart.File, uploadPath ...string) (string, string, error) {
 	folder := "vidverse/uploads/videos"
+	if len(uploadPath) > 0 {
+		folder = uploadPath[0]
+	}
 	resp, err := CLD.Upload.Upload(ctx, video, uploader.UploadParams{
 		Folder: folder,
 	})

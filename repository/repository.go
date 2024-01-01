@@ -16,6 +16,8 @@ type DatabaseRepo interface {
 	FindAllVideoIDByChannelID(id uint) ([]uint, error)
 	DeleteAllVideoIDByChannelID(id uint) error
 	DeleteVideoFromCloudinary(publicID string) error
+	CreateVideo(video *models.Video) (uint, error)
+	UpdateVideo(video *models.Video) error
 
 	GetCommentsByVideoID(id, page, limit int) ([]models.CommentDTO, int64, error)
 	GetCommentByID(id uint) (*models.Comment, error)
