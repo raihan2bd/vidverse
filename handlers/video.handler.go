@@ -9,7 +9,6 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/cloudinary/cloudinary-go/v2/api/uploader"
 	"github.com/gin-gonic/gin"
 	"github.com/raihan2bd/vidverse/config"
 	"github.com/raihan2bd/vidverse/helpers"
@@ -630,7 +629,7 @@ func (m *Repo) StreamVideo(c *gin.Context) {
 }
 
 // Delete video
-func (m *Repo) HandleDeleteVidoe(c *gin.Context) {
+func (m *Repo) HandleDeleteVideo(c *gin.Context) {
 	id, err := strconv.Atoi(c.Params.ByName("videoID"))
 	if err != nil {
 		c.IndentedJSON(http.StatusNotFound, gin.H{
@@ -639,31 +638,49 @@ func (m *Repo) HandleDeleteVidoe(c *gin.Context) {
 		return
 	}
 
-	// Check the videoID is available or not
-	var publicID string
-	result := initializers.DB.Table("videos").Select("public_id").Where("id = ?", id).Scan(&publicID)
-
-	if result.Error != nil {
-		c.IndentedJSON(http.StatusNotFound, gin.H{
-			"error": "404 the video you want to delete is not found!",
+	user_id, ok := c.Get("user_id")
+	if !ok {
+		c.JSON(http.StatusUnauthorized, gin.H{
+			"error": "Access denied! Please login first",
 		})
 		return
 	}
 
-	_, err = initializers.CLD.Upload.Destroy(context.Background(), uploader.DestroyParams{PublicID: publicID, ResourceType: "video"})
+	userID := uint(user_id.(float64))
+	var user *models.User
+	user, err = m.App.DBMethods.GetUserByID(userID)
+	if err != nil {
+		c.JSON(http.StatusUnauthorized, gin.H{
+			"error": "Access denied! Please login first",
+		})
+		return
+	}
 
+	// check the video is available or not
+	var video *models.Video
+	video, err = m.App.DBMethods.GetVideoByID(id)
+	if err != nil || video.ID == 0 {
+		c.IndentedJSON(http.StatusNotFound, gin.H{
+			"error": "404 video not found!",
+		})
+		return
+	}
+
+	// check the user role
+	if user.UserRole != "admin" {
+		if user.UserRole != "author" || video.Channel.UserID != user.ID {
+			c.JSON(http.StatusForbidden, gin.H{
+				"error": "Access denied! You are not allowed to delete video",
+			})
+			return
+		}
+	}
+
+	// delete video from database
+	err = m.App.DBMethods.DeleteVideoModel(video)
 	if err != nil {
 		c.IndentedJSON(http.StatusInternalServerError, gin.H{
-			"error": "failed to delete the video.",
-		})
-		return
-	}
-
-	// delete the video
-	err = m.App.DBMethods.DeleteVideoByID(id)
-	if err != nil {
-		c.IndentedJSON(http.StatusNotFound, gin.H{
-			"error": "something went wrong. failed to delete the video",
+			"error": "Failed to delete the video",
 		})
 		return
 	}

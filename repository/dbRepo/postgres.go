@@ -8,6 +8,7 @@ import (
 	"github.com/cloudinary/cloudinary-go/v2/api/uploader"
 	"github.com/raihan2bd/vidverse/models"
 	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 )
 
 // Get user by username
@@ -148,11 +149,24 @@ func (m *postgresDBRepo) UpdateVideo(video *models.Video) error {
 }
 
 // Delete video by ID
-func (m *postgresDBRepo) DeleteVideoByID(id int) error {
-	result := m.DB.Unscoped().Delete(&models.Video{}, id)
-	if result.Error != nil {
+func (m *postgresDBRepo) DeleteVideoModel(video *models.Video) error {
+	videoPublicID, thumbPublicID := video.PublicID, video.ThumbPublicID
+
+	err := m.DB.Select(clause.Associations).Unscoped().Delete(&video).Error
+	if err != nil {
+		fmt.Println(err)
 		return errors.New("something went wrong. failed to delete the video")
 	}
+
+	// go routine to delete video from cloudinary
+	go func() {
+		// delete all notifications related to this video
+		_ = m.DB.Unscoped().Where("video_id = ?", video.ID).Delete(&models.Notification{}).Error
+
+		// delete video
+		_ = m.DeleteVideoFromCloudinary(videoPublicID)
+		_ = m.DeleteImageFromCloudinary(thumbPublicID)
+	}()
 
 	return nil
 }

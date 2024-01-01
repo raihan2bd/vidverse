@@ -12,7 +12,7 @@ type DatabaseRepo interface {
 	GetTotalVideosCount(searchQuery string) (int64, error)
 	GetVideoByID(id int) (*models.Video, error)
 	GetVideosByChannelID(id, page, limit int) ([]models.VideoDTO, int64, error)
-	DeleteVideoByID(id int) error
+	DeleteVideoModel(*models.Video) error
 	FindAllVideoIDByChannelID(id uint) ([]uint, error)
 	DeleteAllVideoIDByChannelID(id uint) error
 	DeleteVideoFromCloudinary(publicID string) error
