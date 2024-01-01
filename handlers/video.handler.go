@@ -217,7 +217,6 @@ func (m *Repo) HandleCreateVideo(c *gin.Context) {
 
 // handle update video
 func (m *Repo) HandleUpdateVideo(c *gin.Context) {
-	fmt.Println("update video")
 	// authorization
 	user_id, ok := c.Get("user_id")
 	if !ok {
@@ -621,16 +620,11 @@ func (m *Repo) StreamVideo(c *gin.Context) {
 		return
 	}
 
-	// Log the SecureURL for debugging purposes
-	fmt.Println("SecureURL:", SecureURL)
-
 	http.ServeFile(c.Writer, c.Request, SecureURL)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"error": "Internal server error",
 		})
-		// You should also log the error for debugging
-		fmt.Println("ServeFile error:", err)
 		return
 	}
 }
@@ -659,7 +653,6 @@ func (m *Repo) HandleDeleteVidoe(c *gin.Context) {
 	_, err = initializers.CLD.Upload.Destroy(context.Background(), uploader.DestroyParams{PublicID: publicID, ResourceType: "video"})
 
 	if err != nil {
-		fmt.Println(err)
 		c.IndentedJSON(http.StatusInternalServerError, gin.H{
 			"error": "failed to delete the video.",
 		})
