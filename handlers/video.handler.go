@@ -357,7 +357,7 @@ func (m *Repo) HandleUpdateVideo(c *gin.Context) {
 		}
 
 		if videoPublicID != video.PublicID {
-			_ = helpers.DeleteImageFromCloudinary(ctx, m.App.CLD, videoPublicID)
+			_ = helpers.DeleteVideoFromCloudinary(ctx, m.App.CLD, videoPublicID)
 		}
 
 		c.IndentedJSON(http.StatusInternalServerError, gin.H{
@@ -377,7 +377,7 @@ func (m *Repo) HandleUpdateVideo(c *gin.Context) {
 	}
 
 	if oldVideoPublicID != "" && (videoPublicID != oldVideoPublicID) {
-		_ = helpers.DeleteImageFromCloudinary(ctx, m.App.CLD, oldVideoPublicID)
+		_ = helpers.DeleteVideoFromCloudinary(ctx, m.App.CLD, oldVideoPublicID)
 	}
 
 }
