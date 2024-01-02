@@ -2,8 +2,10 @@ package dbrepo
 
 import (
 	"errors"
+	"log"
 
 	"github.com/raihan2bd/vidverse/models"
+	"gorm.io/gorm/clause"
 )
 
 // get channel details
@@ -73,18 +75,75 @@ func (m *postgresDBRepo) DeleteChannelByID(id int) *models.CustomError {
 		return &models.CustomError{Status: 404, Err: errors.New("the channel you want to delete is not found")}
 	}
 
-	// delete the channel
-	result = m.DB.Unscoped().Delete(&channel)
+	var videos []models.Video
+	result = m.DB.Table("videos").Select("id, public_id, thumb_public_id").Where("channel_id = ?", id).Find(&videos)
+
 	if result.Error != nil {
+		videos = nil
+		log.Println(result.Error)
+	}
+
+	tsx := m.DB.Begin()
+
+	defer func() {
+		if r := recover(); r != nil {
+			tsx.Rollback()
+		}
+	}()
+
+	// delete all videos related to this channel
+	for _, video := range videos {
+		err := m.DeleteVideoModel(&video)
+		if err != nil {
+			log.Println(err)
+		}
+	}
+
+	// delete the channel
+	channelPublicID := channel.LogoPublicID
+	channelCoverPublicID := channel.CoverPublicID
+
+	err := m.DB.Select(clause.Associations).Unscoped().Delete(&channel).Error
+	if err != nil {
+		tsx.Rollback()
 		return &models.CustomError{Status: 500, Err: errors.New("failed to delete the channel")}
 	}
 
-	if channel.LogoPublicID != "" {
-		// delete the logo from cloudinary
-		_ = m.DeleteImageFromCloudinary(channel.LogoPublicID)
+	err = tsx.Commit().Error
+	if err != nil {
+		return &models.CustomError{Status: 500, Err: errors.New("failed to delete the channel")}
 	}
 
+	go func() {
+		// delete the logo from cloudinary
+		if channelPublicID != "" {
+			err = m.DeleteImageFromCloudinary(channelPublicID)
+			if err != nil {
+				log.Println(err)
+			}
+		}
+
+		// delete cover from cloudinary
+		if channel.CoverPublicID != "" {
+			err = m.DeleteImageFromCloudinary(channelCoverPublicID)
+			if err != nil {
+				log.Println(err)
+			}
+		}
+		// delete all notification related to this channel
+		err = m.DeleteNotificationsByChannelID(uint(id))
+		if err != nil {
+			log.Println(err)
+		}
+		// delete all subscriptions related to this channel
+		err = m.DeleteAllSubscriptionByChannelID(uint(id))
+		if err != nil {
+			log.Println(err)
+		}
+	}()
+
 	return nil
+
 }
 
 // Update channel

@@ -370,3 +370,12 @@ func (m *postgresDBRepo) IsContactUsSubmitted(email string) bool {
 	}
 	return true
 }
+
+func (m *postgresDBRepo) DeleteAllSubscriptionByChannelID(channelID uint) error {
+	result := m.DB.Unscoped().Where("channel_id = ?", channelID).Delete(&models.Subscription{})
+	if result.Error != nil {
+		return errors.New("failed to delete all subscription")
+	}
+
+	return nil
+}

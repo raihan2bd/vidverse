@@ -209,8 +209,8 @@ func (m *Repo) HandleCreateVideo(c *gin.Context) {
 	}
 
 	c.IndentedJSON(http.StatusCreated, gin.H{
-		"message": "Successfully created the video",
-		"videoID": videoID,
+		"message":  "Successfully created the video",
+		"video_id": videoID,
 	})
 }
 
