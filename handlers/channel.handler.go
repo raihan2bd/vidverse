@@ -396,3 +396,70 @@ func (m *Repo) HandleDeleteChannel(c *gin.Context) {
 		return
 	}
 }
+
+// GetVideos by channel id
+func (m *Repo) HandleGetChannelsVideos(c *gin.Context) {
+	channelID, err := strconv.Atoi(c.Param("channelID"))
+
+	if err != nil {
+		c.JSON(400, gin.H{"error": "Invalid channel id"})
+		return
+	}
+
+	page, err := strconv.Atoi(c.DefaultQuery("page", "1"))
+	if err != nil {
+		c.JSON(404, gin.H{"error": "No videos found"})
+		return
+	}
+
+	limit, err := strconv.Atoi(c.DefaultQuery("limit", "16"))
+	if err != nil {
+		c.JSON(404, gin.H{"error": "No videos found"})
+		return
+	}
+
+	var videos []models.VideoDTO
+	var count int64
+	videos, count, err = m.App.DBMethods.GetVideosByChannelIDWithPagination(uint(channelID), page, limit)
+	if err != nil {
+		c.JSON(500, gin.H{"error": "Failed to get videos"})
+		return
+	}
+
+	var hasNext bool
+
+	if count > int64(limit)*int64(page) {
+		hasNext = true
+	} else {
+		hasNext = false
+	}
+
+	c.JSON(200, gin.H{"videos": videos, "has_next_page": hasNext, "page": page, "total_videos": count})
+}
+
+// Get channel by id with details
+func (m *Repo) HandleGetChannelWithDetails(c *gin.Context) {
+	user_id, _ := c.Get("user_id")
+	var userID uint
+
+	if user_id != nil {
+		userID = uint(user_id.(float64))
+	} else {
+		userID = 0
+	}
+
+	channelID, err := strconv.Atoi(c.Param("channelID"))
+	if err != nil {
+		c.JSON(400, gin.H{"error": "404 Channel not found!"})
+		return
+	}
+
+	var channel *models.CustomChannelDTO
+	channel, err = m.App.DBMethods.GetChannelWithDetails(uint(channelID), userID)
+	if err != nil {
+		c.JSON(500, gin.H{"error": "Internal server error! Please try again later."})
+		return
+	}
+
+	c.JSON(200, gin.H{"channel": channel})
+}

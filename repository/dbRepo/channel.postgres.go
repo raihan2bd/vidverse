@@ -12,7 +12,7 @@ import (
 func (m *postgresDBRepo) GetChannelByID(id int) (*models.CustomChannelDTO, error) {
 	var channel models.CustomChannelDTO
 
-	err := m.DB.Table("channels").Select("channels.id, channels.title, channels.logo, channels.description, count(videos.id) as total_videos, count(subscriptions.id) as total_subscribers, channels.user_id, channels.logo_public_id, channels.cover, channels.cover_public_id").
+	err := m.DB.Table("channels").Select("channels.id, channels.title, channels.logo, channels.description, count(DISTINCT videos.id) as total_videos, count(DISTINCT subscriptions.id) as total_subscribers, channels.user_id, channels.logo_public_id, channels.cover, channels.cover_public_id").
 		Joins("left join videos on videos.channel_id = channels.id").
 		Joins("left join subscriptions on subscriptions.channel_id = channels.id").
 		Where("channels.id = ?", id).
@@ -50,7 +50,7 @@ func (m *postgresDBRepo) GetChannels(userID int) ([]models.CustomChannel, error)
 func (m *postgresDBRepo) GetChannelsWithDetailsByUserID(userID uint) ([]models.CustomChannelDTO, error) {
 	var channels []models.CustomChannelDTO
 
-	err := m.DB.Table("channels").Select("channels.id, channels.title, channels.logo, channels.description, channels.cover, count(videos.id) as total_video, count(subscriptions.id) as total_subscriber, channels.user_id").
+	err := m.DB.Table("channels").Select("channels.id, channels.title, channels.logo, channels.description, channels.cover, count(DISTINCT videos.id) as total_video, count(DISTINCT subscriptions.id) as total_subscriber, channels.user_id").
 		Joins("left join videos on videos.channel_id = channels.id").
 		Joins("left join subscriptions on subscriptions.channel_id = channels.id").
 		Where("channels.user_id = ?", userID).
@@ -160,4 +160,45 @@ func (m *postgresDBRepo) UpdateChannel(channel *models.CustomChannelDTO) error {
 		return errors.New("failed to update the channel")
 	}
 	return nil
+}
+
+// Get videos by channel id with pagination
+func (m *postgresDBRepo) GetVideosByChannelIDWithPagination(channelID uint, page, limit int) ([]models.VideoDTO, int64, error) {
+	var videos []models.VideoDTO
+	var count int64
+
+	err := m.DB.Table("videos").Select("videos.id, videos.title, videos.thumb, videos.views, videos.channel_id, channels.title as channel_title, channels.logo as channel_logo").
+		Joins("left join channels on channels.id = videos.channel_id").
+		Where("videos.channel_id = ?", channelID).
+		Order("videos.created_at desc").
+		Count(&count).
+		Offset((page - 1) * limit).
+		Limit(limit).
+		Find(&videos).Error
+
+	if err != nil {
+		return nil, 0, errors.New("internal server error. Please try again")
+	}
+
+	return videos, count, nil
+}
+
+func (m *postgresDBRepo) GetChannelWithDetails(channelID, userID uint) (*models.CustomChannelDTO, error) {
+	var channel models.CustomChannelDTO
+
+	err := m.DB.Table("channels").Select("channels.id, channels.title, channels.logo, channels.description, channels.cover, count(DISTINCT videos.id) as total_video, count(DISTINCT subscriptions.id) as total_subscriber, channels.user_id").
+		Joins("left join videos on videos.channel_id = channels.id").
+		Joins("left join subscriptions on subscriptions.channel_id = channels.id").
+		Where("channels.id = ?", channelID).
+		Group("channels.id").
+		First(&channel).Error
+
+	if err != nil {
+		return nil, errors.New("internal server error. Please try again")
+	}
+
+	// check if the user is subscribed to this channel
+	channel.IsSubscribed = m.IsSubscribed(userID, channelID)
+
+	return &channel, nil
 }

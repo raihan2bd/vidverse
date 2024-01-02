@@ -32,6 +32,8 @@ type DatabaseRepo interface {
 	UpdateChannel(channel *models.CustomChannelDTO) error
 	DeleteChannelByID(id int) *models.CustomError
 	GetChannelsWithDetailsByUserID(userID uint) ([]models.CustomChannelDTO, error)
+	GetVideosByChannelIDWithPagination(channelID uint, page, limit int) ([]models.VideoDTO, int64, error)
+	GetChannelWithDetails(channelID uint, userID uint) (*models.CustomChannelDTO, error)
 
 	GetLikeByVideoIDAndUserID(videoID, userID uint) (*models.Like, error)
 	CreateLike(like *models.Like) (uint, error)
