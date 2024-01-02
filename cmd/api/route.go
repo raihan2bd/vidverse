@@ -48,6 +48,8 @@ func NewRouter() *gin.Engine {
 	v1.PATCH("/channels/:channelID", isAuthor, handlers.Methods.HandleEditChannel)
 	v1.GET("/channels/:channelID", handlers.Methods.HandleGetChannel)
 	v1.DELETE("/channels/:channelID", isAuthor, handlers.Methods.HandleDeleteChannel)
+	v1.GET("/get_channel_videos/:channelID", handlers.Methods.HandleGetChannelsVideos)
+	v1.GET("/get_channel_with_details/:channelID", HasToken, handlers.Methods.HandleGetChannelWithDetails)
 
 	v1.POST("/contact_us", HasToken, handlers.Methods.HandleContactUs)
 
