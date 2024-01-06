@@ -56,6 +56,7 @@ func (m *Repo) HandleGetSubscribedChannels(c *gin.Context) {
 		ReceiverID: channels.UserID,
 		IsRead:     false,
 		SenderID:   userIDUint,
+		SenderName: user.Name,
 		ChannelID:  channels.ID,
 		Type:       "subscribe",
 	}

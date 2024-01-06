@@ -140,25 +140,6 @@ type CustomChannelDTO struct {
 	IsSubscribed    bool   `json:"is_subscribed,omitempty"`
 }
 
-// type Notification struct {
-// 	CustomModel
-// 	IsRead     bool    `gorm:"type:boolean;not null;default:false" json:"is_read,omitempty"`
-// 	ReceiverID uint    `gorm:"foreignKey:ReceiverID;references:ID; not null;" json:"receiver_id,omitempty"`
-// 	SenderID   uint    `gorm:"foreignKey:SenderID;references:ID; not null;" json:"sender_id,omitempty"`
-// 	SenderName string  `gorm:"type:varchar(100);not null;" json:"sender_name,omitempty"`
-// 	VideoID    uint    `gorm:"foreignKey:VideoID;references:ID;not 0; default:null;" json:"video_id,omitempty"`
-// 	ChannelID  uint    `gorm:"foreignKey:ChannelID;references:ID;not 0; default:null;" json:"channel_id,omitempty"`
-// 	CommentID  uint    `gorm:"foreignKey:CommentID;references:ID; not 0; default:null;" json:"comment_id,omitempty"`
-// 	LikeID     uint    `gorm:"foreignKey:LikeID;references:ID;not 0; default:null;" json:"like_id,omitempty"`
-// 	Type       string  `gorm:"type:varchar(100);not null;" json:"type,omitempty"`
-// 	Receiver   User    `gorm:"foreignKey:ReceiverID;references:ID" json:"receiver,omitempty"`
-// 	Sender     User    `gorm:"foreignKey:SenderID;references:ID" json:"sender,omitempty"`
-// 	Comment    Comment `gorm:"foreignKey:CommentID;references:ID" json:"comment,omitempty"`
-// 	Video      Video   `gorm:"foreignKey:VideoID;references:ID" json:"video,omitempty"`
-// 	Channel    Channel `gorm:"foreignKey:ChannelID;references:ID" json:"channel,omitempty"`
-// 	Like       Like    `gorm:"foreignKey:LikeID;references:ID" json:"like,omitempty"`
-// }
-
 type Notification struct {
 	CustomModel
 	IsRead     bool   `gorm:"type:boolean;not null;default:false" json:"is_read,omitempty"`
