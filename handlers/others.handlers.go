@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"fmt"
 	"strconv"
 
 	"github.com/gin-gonic/gin"
@@ -128,4 +129,51 @@ func (m *Repo) HandleContactUs(c *gin.Context) {
 		return
 	}
 
+}
+
+// HandleGetNotificationsByUserID get all notifications by user ID
+func (m *Repo) HandleGetNotifications(c *gin.Context) {
+	userID, ok := c.Get("user_id")
+	if !ok {
+		c.JSON(401, gin.H{"error": "unauthorized"})
+		return
+	}
+
+	var (
+		err         error
+		page, limit int
+	)
+
+	page, err = strconv.Atoi(c.DefaultQuery("page", "1"))
+	if err != nil {
+		c.JSON(400, gin.H{"error": "invalid page number"})
+		return
+	}
+
+	limit, err = strconv.Atoi(c.DefaultQuery("limit", "10"))
+	if err != nil {
+		c.JSON(400, gin.H{"error": "invalid limit number"})
+		return
+	}
+
+	userIDUint := uint(userID.(float64))
+
+	var (
+		notifications []models.Notification
+		total         int64
+	)
+
+	notifications, total, err = m.App.DBMethods.GetNotificationsByUserID(userIDUint, page, limit)
+	if err != nil {
+		fmt.Println(err)
+		c.JSON(500, gin.H{"error": "internal server error"})
+		return
+	}
+
+	var has_next_page bool
+	if total > int64(page*limit) {
+		has_next_page = true
+	}
+
+	c.JSON(200, gin.H{"notifications": notifications, "total": total, "has_next_page": has_next_page})
 }

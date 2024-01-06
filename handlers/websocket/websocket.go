@@ -10,7 +10,6 @@ import (
 	"github.com/gorilla/websocket"
 	"github.com/raihan2bd/vidverse/config"
 	"github.com/raihan2bd/vidverse/helpers"
-	"github.com/raihan2bd/vidverse/models"
 )
 
 type Repo struct {
@@ -175,7 +174,8 @@ func (m *Repo) HandleMessages() {
 		case "a_new_notification":
 			conn := m.Clients.Get(event.BroadcasterID)
 			if conn != nil {
-				err := conn.WriteJSON(WsPayload{Action: "a_new_notification", Data: "notification sent"})
+				fmt.Println("sending notification", event.Data)
+				err := conn.WriteJSON(WsPayload{Action: "a_new_notification", Data: event.Data})
 				if err != nil {
 					continue
 				}
@@ -191,11 +191,11 @@ func (m *Repo) HandleMessages() {
 			} else {
 
 				// Send message to client
-				notifications, err := m.App.DBMethods.GetUnreadNotificationsByUserID(event.BroadcasterID)
+				count, err := m.App.DBMethods.GetUnreadNotificationsCountByUserID(event.BroadcasterID)
 				if err != nil {
-					notifications = []models.Notification{}
+					count = 0
 				}
-				err = conn.WriteJSON(WsPayload{Action: event.Action, Data: notifications})
+				err = conn.WriteJSON(WsPayload{Action: event.Action, Data: count})
 				if err != nil {
 					continue
 				}

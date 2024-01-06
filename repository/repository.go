@@ -42,11 +42,12 @@ type DatabaseRepo interface {
 	IsSubscribed(userID, channelID uint) bool
 	ToggleSubscription(userID, channelID uint) (uint, error)
 
-	GetNotificationsByUserID(userID int) ([]models.Notification, error)
+	GetNotificationsByUserID(userID uint, page, limit int) ([]models.Notification, int64, error)
 	GetUnreadNotificationsByUserID(userID uint) ([]models.Notification, error)
 	GetNotificationByID(id uint) (*models.Notification, error)
 	CreateNotification(notification *models.Notification) error
 	DeleteNotificationsByChannelID(id uint) error
+	GetUnreadNotificationsCountByUserID(userID uint) (int64, error)
 
 	CreateContactUs(contactUs *models.ContactUs) error
 	IsContactUsSubmitted(email string) bool
