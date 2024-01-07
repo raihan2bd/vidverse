@@ -880,6 +880,8 @@ func (m *Repo) HandleVideoLike(c *gin.Context) {
 
 		if err == nil {
 			// send notification to the user
+			notification.SenderAvatar = user.Avatar
+			notification.Thumb = video.Thumb
 			m.App.NotificationChan <- &config.NotificationEvent{BroadcasterID: ownerID, Action: "a_new_notification", Data: &notification}
 		}
 

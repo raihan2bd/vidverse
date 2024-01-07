@@ -203,6 +203,9 @@ func (m *Repo) HandleCreateOrUpdateComment(c *gin.Context) {
 			return
 		}
 
+		notification.SenderAvatar = user.Avatar
+		notification.Thumb = video.Thumb
+
 		// send notification to the comment owner
 		m.App.NotificationChan <- &config.NotificationEvent{
 			BroadcasterID: video.Channel.UserID,

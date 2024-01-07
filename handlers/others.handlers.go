@@ -30,7 +30,7 @@ func (m *Repo) HandleGetSubscribedChannels(c *gin.Context) {
 		return
 	}
 
-	channels, err := m.App.DBMethods.GetChannelByID(channelID)
+	channel, err := m.App.DBMethods.GetChannelByID(channelID)
 	if err != nil {
 		c.JSON(500, gin.H{"error": "internal server error"})
 		return
@@ -42,23 +42,23 @@ func (m *Repo) HandleGetSubscribedChannels(c *gin.Context) {
 		return
 	}
 
-	c.JSON(200, gin.H{"channels": channels})
+	c.JSON(200, gin.H{"channels": channel})
 
 	if id == 0 {
 		return
 	}
 
-	if user.ID == channels.UserID {
+	if user.ID == channel.UserID {
 		return
 	}
 
 	// create notification
 	notification := &models.Notification{
-		ReceiverID: channels.UserID,
+		ReceiverID: channel.UserID,
 		IsRead:     false,
 		SenderID:   userIDUint,
 		SenderName: user.Name,
-		ChannelID:  channels.ID,
+		ChannelID:  channel.ID,
 		Type:       "subscribe",
 	}
 
@@ -67,9 +67,12 @@ func (m *Repo) HandleGetSubscribedChannels(c *gin.Context) {
 		return
 	}
 
+	notification.SenderAvatar = user.Avatar
+	notification.Thumb = channel.Logo
+
 	// send notification to the user
 	m.App.NotificationChan <- &config.NotificationEvent{
-		BroadcasterID: channels.UserID,
+		BroadcasterID: channel.UserID,
 		Action:        "a_new_notification",
 		Data:          notification,
 	}
