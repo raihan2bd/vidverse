@@ -48,6 +48,7 @@ type DatabaseRepo interface {
 	CreateNotification(notification *models.Notification) error
 	DeleteNotificationsByChannelID(id uint) error
 	GetUnreadNotificationsCountByUserID(userID uint) (int64, error)
+	UpdateNotificationByID(id uint) error
 
 	CreateContactUs(contactUs *models.ContactUs) error
 	IsContactUsSubmitted(email string) bool

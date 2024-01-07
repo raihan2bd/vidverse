@@ -76,6 +76,59 @@ func (m *Repo) HandleGetSubscribedChannels(c *gin.Context) {
 
 }
 
+// HandleUpdateNotification update notification by notification ID
+func (m *Repo) HandleUpdateNotification(c *gin.Context) {
+	userID, ok := c.Get("user_id")
+	if !ok {
+		fmt.Println("user id not found")
+		c.JSON(401, gin.H{"error": "unauthorized"})
+		return
+	}
+
+	notificationInt, err := strconv.Atoi(c.Param("notificationID"))
+	if err != nil {
+		c.JSON(404, gin.H{"error": "the notification you are trying to update is invalid"})
+		return
+	}
+
+	notificationID := uint(notificationInt)
+
+	userIDUint := uint(userID.(float64))
+
+	// get notification by id
+	notification, err := m.App.DBMethods.GetNotificationByID(notificationID)
+	if err != nil {
+		c.JSON(500, gin.H{"error": "internal server error"})
+		return
+	}
+
+	if notification.IsRead {
+		c.JSON(200, gin.H{"message": "notification is already read"})
+		return
+	}
+
+	if notification.ReceiverID != userIDUint {
+		c.JSON(403, gin.H{"error": "you are not authorized to update this notification"})
+		return
+	}
+
+	// update notification
+	err = m.App.DBMethods.UpdateNotificationByID(notification.ID)
+	if err != nil {
+		c.JSON(500, gin.H{"error": "internal server error"})
+		return
+	}
+
+	c.JSON(200, gin.H{"notification": notification})
+
+	// send websocket signal to the user
+	m.App.NotificationChan <- &config.NotificationEvent{
+		BroadcasterID: userIDUint,
+		Action:        "a_notification_is_read",
+		Data:          notificationID,
+	}
+}
+
 func (m *Repo) HandleContactUs(c *gin.Context) {
 	userID, ok := c.Get("user_id")
 

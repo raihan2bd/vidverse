@@ -183,6 +183,17 @@ func (m *Repo) HandleMessages() {
 				continue
 			}
 
+		case "a_notification_is_read":
+			conn := m.Clients.Get(event.BroadcasterID)
+			if conn != nil {
+				err := conn.WriteJSON(WsPayload{Action: "a_notification_is_read", Data: event.Data})
+				if err != nil {
+					continue
+				}
+			} else {
+				continue
+			}
+
 		case "notifications":
 			// get clients conn from map using broadcasterID
 			conn := m.Clients.Get(event.BroadcasterID)

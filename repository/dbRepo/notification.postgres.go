@@ -95,6 +95,16 @@ func (m *postgresDBRepo) DeleteNotificationByID(id uint) error {
 	return nil
 }
 
+// Update notification by ID
+func (m *postgresDBRepo) UpdateNotificationByID(id uint) error {
+	result := m.DB.Model(&models.Notification{}).Where("id = ?", id).Update("is_read", true)
+	if result.Error != nil {
+		return errors.New("something went wrong. failed to update the notification")
+	}
+
+	return nil
+}
+
 // Delete notification by ID
 func (m *postgresDBRepo) DeleteNotificationsByChannelID(id uint) error {
 	result := m.DB.Unscoped().Where("channel_id = ?", id).Delete(&models.Notification{})
