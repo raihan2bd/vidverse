@@ -10,15 +10,6 @@ import (
 
 // create notification
 func (m *postgresDBRepo) CreateNotification(notification *models.Notification) error {
-
-	// result := m.DB.Create(&notification)
-	// if result.Error != nil {
-	// 	return errors.New("failed to create notification")
-	// }
-
-	// return nil
-
-	// check if the notification already exists
 	var n models.Notification
 	err := m.DB.Where("sender_id = ? AND receiver_id = ? AND channel_id = ? AND video_id = ? AND comment_id = ? AND type = ?", notification.SenderID, notification.ReceiverID, notification.ChannelID, notification.VideoID, notification.CommentID, notification.Type).First(&n).Error
 	if err != nil {
@@ -41,13 +32,17 @@ func (m *postgresDBRepo) GetNotificationsByUserID(userID uint, page, limit int) 
 	var notifications []models.Notification
 	var total int64
 	offset := (page - 1) * limit
-	// err := m.DB.Where("user_id = ?", userID).Order("created_at desc").Find(&notifications).Error
-	// if err != nil {
-	// 	return nil, 0, errors.New("internal server error. Please try again")
-	// }
 
-	// finds all notifications order of  not (is_read boolean) and created_at
-	err := m.DB.Table("notifications").Where("receiver_id = ?", userID).Order("is_read asc, created_at desc").Count(&total).Offset(offset).Limit(limit).Find(&notifications).Error
+	err := m.DB.Table("notifications").Select("notifications.id, notifications.is_read, notifications.receiver_id, notifications.sender_id, notifications.sender_name, notifications.sender_avatar, notifications.thumb, notifications.video_id, notifications.channel_id, notifications.comment_id, notifications.like_id, notifications.type, notifications.created_at, users.avatar as sender_avatar, videos.thumb as thumb, channels.logo as thumb").
+		Joins("left join users on users.id = notifications.sender_id").
+		Joins("left join videos on videos.id = notifications.video_id").
+		Joins("left join channels on channels.id = notifications.channel_id").
+		Where("notifications.receiver_id = ?", userID).
+		Order("notifications.is_read asc, notifications.created_at desc").
+		Count(&total).
+		Offset(offset).
+		Limit(limit).
+		Find(&notifications).Error
 
 	if err != nil {
 		fmt.Println(err)

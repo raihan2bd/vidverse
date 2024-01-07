@@ -175,5 +175,5 @@ func (m *Repo) HandleGetNotifications(c *gin.Context) {
 		has_next_page = true
 	}
 
-	c.JSON(200, gin.H{"notifications": notifications, "total": total, "has_next_page": has_next_page})
+	c.JSON(200, gin.H{"notifications": notifications, "total": total, "has_next_page": has_next_page, "page": page})
 }
