@@ -174,11 +174,25 @@ func (m *Repo) HandleMessages() {
 		case "a_new_notification":
 			conn := m.Clients.Get(event.BroadcasterID)
 			if conn != nil {
-				fmt.Println("sending notification", event.Data)
-				err := conn.WriteJSON(WsPayload{Action: "a_new_notification", Data: event.Data})
+				// Send message to client
+				count, err := m.App.DBMethods.GetUnreadNotificationsCountByUserID(event.BroadcasterID)
+				if err != nil {
+					count = 0
+				}
+
+				var response struct {
+					TotalNewNotification int64       `json:"total_new_notification"`
+					Notification         interface{} `json:"notification"`
+				}
+
+				response.TotalNewNotification = count
+				response.Notification = event.Data
+
+				err = conn.WriteJSON(WsPayload{Action: "a_new_notification", Data: response})
 				if err != nil {
 					continue
 				}
+
 			} else {
 				continue
 			}

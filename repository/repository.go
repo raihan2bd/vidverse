@@ -45,7 +45,7 @@ type DatabaseRepo interface {
 	GetNotificationsByUserID(userID uint, page, limit int) ([]models.Notification, int64, error)
 	GetUnreadNotificationsByUserID(userID uint) ([]models.Notification, error)
 	GetNotificationByID(id uint) (*models.Notification, error)
-	CreateNotification(notification *models.Notification) error
+	CreateNotification(notification *models.Notification) (uint, error)
 	DeleteNotificationsByChannelID(id uint) error
 	GetUnreadNotificationsCountByUserID(userID uint) (int64, error)
 	UpdateNotificationByID(id uint) error

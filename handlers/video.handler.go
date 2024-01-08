@@ -876,12 +876,13 @@ func (m *Repo) HandleVideoLike(c *gin.Context) {
 		ownerID := video.Channel.UserID
 		notification := models.Notification{LikeID: id, Type: "like", VideoID: uint(videoID), SenderID: user.ID, ReceiverID: ownerID, SenderName: user.Name, IsRead: false}
 
-		err = m.App.DBMethods.CreateNotification(&notification)
+		nID, err := m.App.DBMethods.CreateNotification(&notification)
 
 		if err == nil {
 			// send notification to the user
 			notification.SenderAvatar = user.Avatar
 			notification.Thumb = video.Thumb
+			notification.ID = nID
 			m.App.NotificationChan <- &config.NotificationEvent{BroadcasterID: ownerID, Action: "a_new_notification", Data: &notification}
 		}
 

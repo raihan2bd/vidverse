@@ -198,13 +198,14 @@ func (m *Repo) HandleCreateOrUpdateComment(c *gin.Context) {
 			Type:       "comment",
 		}
 
-		err = m.App.DBMethods.CreateNotification(&notification)
+		nID, err := m.App.DBMethods.CreateNotification(&notification)
 		if err != nil {
 			return
 		}
 
 		notification.SenderAvatar = user.Avatar
 		notification.Thumb = video.Thumb
+		notification.ID = nID
 
 		// send notification to the comment owner
 		m.App.NotificationChan <- &config.NotificationEvent{

@@ -1,7 +1,6 @@
 package handlers
 
 import (
-	"fmt"
 	"strconv"
 
 	"github.com/gin-gonic/gin"
@@ -62,13 +61,14 @@ func (m *Repo) HandleGetSubscribedChannels(c *gin.Context) {
 		Type:       "subscribe",
 	}
 
-	err = m.App.DBMethods.CreateNotification(notification)
+	nID, err := m.App.DBMethods.CreateNotification(notification)
 	if err != nil {
 		return
 	}
 
 	notification.SenderAvatar = user.Avatar
 	notification.Thumb = channel.Logo
+	notification.ID = nID
 
 	// send notification to the user
 	m.App.NotificationChan <- &config.NotificationEvent{
@@ -83,7 +83,6 @@ func (m *Repo) HandleGetSubscribedChannels(c *gin.Context) {
 func (m *Repo) HandleUpdateNotification(c *gin.Context) {
 	userID, ok := c.Get("user_id")
 	if !ok {
-		fmt.Println("user id not found")
 		c.JSON(401, gin.H{"error": "unauthorized"})
 		return
 	}
@@ -221,7 +220,6 @@ func (m *Repo) HandleGetNotifications(c *gin.Context) {
 
 	notifications, total, err = m.App.DBMethods.GetNotificationsByUserID(userIDUint, page, limit)
 	if err != nil {
-		fmt.Println(err)
 		c.JSON(500, gin.H{"error": "internal server error"})
 		return
 	}
