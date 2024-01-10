@@ -43,6 +43,7 @@ func NewRouter() *gin.Engine {
 	v1.GET("/comments/:videoID", handlers.Methods.HandleGetComments)
 
 	v1.GET("/likes/:videoID", IsLoggedIn, handlers.Methods.HandleVideoLike)
+	v1.GET("/liked_videos", IsLoggedIn, handlers.Methods.HandleGetLikedVideos)
 
 	v1.GET("/channels", isAuthor, handlers.Methods.HandleGetChannels)
 	v1.GET("/channels_by_user_with_details", isAuthor, handlers.Methods.HandleGetChannelsWithDetailsByUserID)
