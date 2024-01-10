@@ -38,6 +38,7 @@ type DatabaseRepo interface {
 	GetLikeByVideoIDAndUserID(videoID, userID uint) (*models.Like, error)
 	CreateLike(like *models.Like) (uint, error)
 	DeleteLikeByID(id uint) error
+	GetLikedVideos(userIDUint uint, page, limit int) ([]models.VideoDTO, int64, error)
 
 	IsSubscribed(userID, channelID uint) bool
 	ToggleSubscription(userID, channelID uint) (uint, error)
