@@ -231,3 +231,49 @@ func (m *Repo) HandleGetNotifications(c *gin.Context) {
 
 	c.JSON(200, gin.H{"notifications": notifications, "total": total, "has_next_page": has_next_page, "page": page})
 }
+
+// HandleGetLikedVideos get all liked videos by user ID
+func (m *Repo) HandleGetLikedVideos(c *gin.Context) {
+	userID, ok := c.Get("user_id")
+	if !ok {
+		c.JSON(401, gin.H{"error": "unauthorized"})
+		return
+	}
+
+	var (
+		err         error
+		page, limit int
+	)
+
+	page, err = strconv.Atoi(c.DefaultQuery("page", "1"))
+	if err != nil {
+		c.JSON(400, gin.H{"error": "invalid page number"})
+		return
+	}
+
+	limit, err = strconv.Atoi(c.DefaultQuery("limit", "10"))
+	if err != nil {
+		c.JSON(400, gin.H{"error": "invalid limit number"})
+		return
+	}
+
+	userIDUint := uint(userID.(float64))
+
+	var (
+		videos []models.VideoDTO
+		total  int64
+	)
+
+	videos, total, err = m.App.DBMethods.GetLikedVideos(userIDUint, page, limit)
+	if err != nil {
+		c.JSON(500, gin.H{"error": "internal server error"})
+		return
+	}
+
+	var has_next_page bool
+	if total > int64(page*limit) {
+		has_next_page = true
+	}
+
+	c.JSON(200, gin.H{"videos": videos, "total": total, "has_next_page": has_next_page, "page": page})
+}
