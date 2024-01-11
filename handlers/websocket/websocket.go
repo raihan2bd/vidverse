@@ -199,13 +199,19 @@ func (m *Repo) HandleMessages() {
 
 		case "a_notification_is_read":
 			conn := m.Clients.Get(event.BroadcasterID)
-			if conn != nil {
-				err := conn.WriteJSON(WsPayload{Action: "a_notification_is_read", Data: event.Data})
+			if conn == nil {
+				continue
+			} else {
+
+				// Send message to client
+				count, err := m.App.DBMethods.GetUnreadNotificationsCountByUserID(event.BroadcasterID)
+				if err != nil {
+					count = 0
+				}
+				err = conn.WriteJSON(WsPayload{Action: event.Action, Data: count})
 				if err != nil {
 					continue
 				}
-			} else {
-				continue
 			}
 
 		case "notifications":
