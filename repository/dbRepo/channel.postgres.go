@@ -167,7 +167,7 @@ func (m *postgresDBRepo) GetVideosByChannelIDWithPagination(channelID uint, page
 	var videos []models.VideoDTO
 	var count int64
 
-	err := m.DB.Table("videos").Select("videos.id, videos.title, videos.thumb, videos.views, videos.channel_id, channels.title as channel_title, channels.logo as channel_logo").
+	err := m.DB.Table("videos").Select("videos.id, videos.title, videos.thumb, videos.views, videos.channel_id, videos.created_at, channels.title as channel_title, channels.logo as channel_logo").
 		Joins("left join channels on channels.id = videos.channel_id").
 		Where("videos.channel_id = ?", channelID).
 		Order("videos.created_at desc").

@@ -70,7 +70,7 @@ func (m *postgresDBRepo) GetAllVideos(page, limit int, searchQuery string) ([]mo
 
 	offset := (page - 1) * limit
 
-	err := m.DB.Table("videos").Select("videos.id, videos.title, videos.thumb, videos.views, channels.id as channel_id, channels.title as channel_title, channels.logo as channel_logo").
+	err := m.DB.Table("videos").Select("videos.id, videos.title, videos.thumb, videos.views, videos.created_at, channels.id as channel_id, channels.title as channel_title, channels.logo as channel_logo").
 		Joins("left join channels on channels.id = videos.channel_id").
 		Where("videos.title ILIKE ? OR videos.description ILIKE ? OR channels.title ILIKE ?", "%"+searchQuery+"%", "%"+searchQuery+"%", "%"+searchQuery+"%").
 		Count(&count).
@@ -177,7 +177,7 @@ func (m *postgresDBRepo) GetVideosByChannelID(id, page, limit int) ([]models.Vid
 	var count int64
 	offset := (page - 1) * limit
 
-	err := m.DB.Table("videos").Select("videos.id, videos.title, videos.thumb, videos.views, channels.id as channel_id, channels.title as channel_title, channels.logo as channel_logo").
+	err := m.DB.Table("videos").Select("videos.id, videos.title, videos.thumb, videos.views, videos.created_at, channels.id as channel_id, channels.title as channel_title, channels.logo as channel_logo").
 		Joins("left join channels on channels.id = videos.channel_id").
 		Where("videos.channel_id = ?", id).
 		Count(&count).

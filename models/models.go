@@ -84,13 +84,14 @@ type Video struct {
 }
 
 type VideoDTO struct {
-	ID           uint   `json:"id"`
-	Title        string `json:"title"`
-	Thumb        string `json:"thumb"`
-	Views        int64  `json:"views"`
-	ChannelID    uint   `json:"channel_id"`
-	ChannelTitle string `json:"channel_title"`
-	ChannelLogo  string `json:"channel_logo"`
+	ID           uint      `json:"id"`
+	Title        string    `json:"title"`
+	Thumb        string    `json:"thumb"`
+	Views        int64     `json:"views"`
+	ChannelID    uint      `json:"channel_id"`
+	ChannelTitle string    `json:"channel_title"`
+	ChannelLogo  string    `json:"channel_logo"`
+	CreatedAt    time.Time `json:"created_at",omitempty`
 }
 
 type Like struct {
