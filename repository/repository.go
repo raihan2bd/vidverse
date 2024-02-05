@@ -7,6 +7,8 @@ type DatabaseRepo interface {
 	GetUserByUsername(username string) (*models.User, error)
 	GetUserByEmail(email string) (*models.User, error)
 	GetUserByID(id uint) (*models.User, error)
+	AddForgotPasswordToken(token *models.Token) error
+	UpdateUserPassword(user *models.User) error
 
 	GetAllVideos(page, limit int, searchQuery string) ([]models.VideoDTO, int64, error)
 	GetTotalVideosCount(searchQuery string) (int64, error)

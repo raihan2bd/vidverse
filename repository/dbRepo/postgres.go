@@ -53,6 +53,41 @@ func (m *postgresDBRepo) GetUserByID(id uint) (*models.User, error) {
 	return &user, nil
 }
 
+// Add forgot password token
+func (m *postgresDBRepo) AddForgotPasswordToken(userToken *models.Token) error {
+
+	var oldToken models.Token
+	m.DB.First(&oldToken, "user_id = ?", userToken.UserID)
+	if oldToken.ID > 0 {
+		result := m.DB.Table("tokens").Where("id = ?", oldToken.ID).Updates(map[string]interface{}{
+			"token":      userToken.Token,
+			"updated_at": userToken.UpdatedAt,
+		})
+
+		if result.Error != nil {
+			return errors.New("failed to update the token. please try again later")
+		}
+		return nil
+	}
+
+	result := m.DB.Create(&userToken)
+	if result.Error != nil {
+		return errors.New("failed to add the token. please try again later")
+	}
+	return nil
+}
+
+// Update user password
+func (m *postgresDBRepo) UpdateUserPassword(user *models.User) error {
+	result := m.DB.Model(&user).Update("password", user.Password)
+
+	if result.Error != nil {
+		return errors.New("failed to update the user password")
+	}
+
+	return nil
+}
+
 // create new user
 func (m *postgresDBRepo) CreateNewUser(user *models.User) (int, error) {
 	result := m.DB.Create(&user)
