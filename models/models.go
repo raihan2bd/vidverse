@@ -27,7 +27,7 @@ type User struct {
 type Token struct {
 	CustomModel
 	UserID uint   `json:"user_id"`
-	Token  string `gorm:"type:varchar(255);" json:"token"`
+	Token  string `gorm:"type:varchar(255);index" json:"token"`
 	User   User   `gorm:"foreignKey:UserID"`
 }
 
