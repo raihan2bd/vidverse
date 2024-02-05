@@ -2,6 +2,8 @@ package helpers
 
 import (
 	"context"
+	"crypto/rand"
+	"encoding/base64"
 	"errors"
 	"fmt"
 	"mime/multipart"
@@ -122,4 +124,13 @@ func DeleteVideoFromCloudinary(ctx context.Context, CLD *cloudinary.Cloudinary, 
 		return err
 	}
 	return nil
+}
+
+// generate random secure token
+func GenerateRandomToken(length int) (string, error) {
+	bytes := make([]byte, length)
+	if _, err := rand.Read(bytes); err != nil {
+		return "", err
+	}
+	return base64.URLEncoding.EncodeToString(bytes), nil
 }
