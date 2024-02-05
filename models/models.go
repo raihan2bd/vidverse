@@ -24,6 +24,13 @@ type User struct {
 	UserRole string `gorm:"type:varchar(150);not null;default:'user'" json:"user_role"`
 }
 
+type Token struct {
+	CustomModel
+	UserID uint   `json:"user_id"`
+	Token  string `gorm:"type:varchar(255);" json:"token"`
+	User   User   `gorm:"foreignKey:UserID"`
+}
+
 type UserPayload struct {
 	CustomModel
 	Name string `gorm:"type:varchar(100);not null" json:"name"`
