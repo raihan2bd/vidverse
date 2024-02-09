@@ -11,6 +11,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/raihan2bd/vidverse/helpers"
+	"github.com/raihan2bd/vidverse/internal/mail"
 	"github.com/raihan2bd/vidverse/models"
 	validator "github.com/raihan2bd/vidverse/validators"
 	"golang.org/x/crypto/bcrypt"
@@ -234,12 +235,13 @@ func (m *Repo) RequestForgotPassword(c *gin.Context) {
 		return
 	}
 
-	var userToken *models.Token
-	userToken.ID = user.ID
-	userToken.Token = tokenString
+	var userToken = models.Token{
+		UserID: user.ID,
+		Token:  tokenString,
+	}
 
 	// add token to the database
-	err = m.App.DBMethods.AddForgotPasswordToken(userToken)
+	err = m.App.DBMethods.AddForgotPasswordToken(&userToken)
 	if err != nil {
 		c.IndentedJSON(500, gin.H{
 			"error": "Internal server error. Please try again",
@@ -247,81 +249,133 @@ func (m *Repo) RequestForgotPassword(c *gin.Context) {
 		return
 	}
 
-	//todo: send email
+	data := map[string]any{
+		"UserName":   user.Name,
+		"VerifyLink": fmt.Sprintf("%s/verify/%v?token=%s", os.Getenv("APP_DOMAIN"), user.ID, tokenString),
+	}
+
+	// send email
+	msg := mail.Message{
+		From:        m.App.Mailer.FromAddress,
+		To:          user.Email,
+		Subject:     "Password Reset Request",
+		IsResetPass: true,
+		DataMap:     data,
+	}
+
+	err = m.App.Mailer.SendSmtpMessage(msg)
+	if err != nil {
+		c.JSON(500, gin.H{"error": "Failed to send the email. Please make sure your email is correct."})
+		return
+	}
 
 	c.IndentedJSON(201, gin.H{
-		"message": "An Email is sent to your email. Please check your inbox",
+		"message": "An email has been sent to you. Please check your inbox and verify yourself",
 	})
 }
 
 func (m *Repo) ForgotPassword(c *gin.Context) {
-	type UserPayload struct {
-		Token    string `json:"token"`
-		Password string `json:"password"`
-	}
-	var payload UserPayload
+	// type UserPayload struct {
+	// 	Token    string `json:"token"`
+	// 	Password string `json:"password"`
+	// }
+	// var payload UserPayload
 
-	if err := c.BindJSON(&payload); err != nil {
-		c.IndentedJSON(http.StatusBadRequest, gin.H{
-			"error": "Invalid payload",
-		})
-		return
+	// if err := c.BindJSON(&payload); err != nil {
+	// 	c.IndentedJSON(http.StatusBadRequest, gin.H{
+	// 		"error": "Invalid payload",
+	// 	})
+	// 	return
+	// }
+
+	// // validate token string
+	// v := validator.New()
+	// v.IsLength(payload.Token, "token", 8, 255)
+	// v.IsValidPassword(payload.Password, "password")
+	// if !v.Valid() {
+	// 	c.IndentedJSON(500, gin.H{
+	// 		"error": v.GetErrMsg(),
+	// 	})
+	// 	return
+	// }
+
+	// // check if the token is exist
+	// userToken, isValid := m.App.DBMethods.ValidateForgotPasswordToken(payload.Token)
+	// if !isValid {
+	// 	c.IndentedJSON(403, gin.H{
+	// 		"error": "The link is already expired",
+	// 	})
+	// 	return
+	// }
+
+	// // fetch the user
+	// user, err := m.App.DBMethods.GetUserByID(userToken.ID)
+	// if err != nil || user.ID == 0 {
+	// 	c.IndentedJSON(404, gin.H{
+	// 		"error": "The user account password you want to change is not found.",
+	// 	})
+	// 	return
+	// }
+
+	// // Update password
+	// // hash the password
+	// hash, err := bcrypt.GenerateFromPassword([]byte(payload.Password), 12)
+	// if err != nil {
+	// 	c.IndentedJSON(http.StatusInternalServerError, gin.H{
+	// 		"error": "something went wrong. please try again later.",
+	// 	})
+	// 	return
+	// }
+
+	// user.Password = string(hash)
+	// err = m.App.DBMethods.UpdateUserPassword(user)
+	// if err != nil {
+	// 	c.IndentedJSON(http.StatusInternalServerError, gin.H{
+	// 		"error": "something went wrong. please try again later.",
+	// 	})
+	// 	return
+	// }
+
+	// // delete token
+	// _ = m.App.DBMethods.DeleteUserForgotToken(userToken.ID)
+
+	// c.JSON(200, gin.H{
+	// 	"message": "User is verified",
+	// 	"user_id": userToken.UserID,
+	// })
+
+}
+
+func (m *Repo) SendMail(c *gin.Context) {
+	// type mailMessage struct {
+	// 	From    string `json:"from"`
+	// 	To      string `json:"to"`
+	// 	Subject string `json:"subject"`
+	// 	Message string `json:"message"`
+	// }
+
+	// var payload mailMessage
+
+	// if err := c.BindJSON(&payload); err != nil {
+	// 	c.IndentedJSON(http.StatusBadRequest, gin.H{
+	// 		"error": "Invalid email",
+	// 	})
+	// 	return
+	// }
+
+	msg := mail.Message{
+		From:    m.App.Mailer.FromAddress,
+		To:      "raihan2bd.official@gmail.com",
+		Subject: "sending mail from vidverse",
+		Data:    "This is a dummy message",
 	}
 
-	// validate token string
-	v := validator.New()
-	v.IsLength(payload.Token, "token", 8, 255)
-	v.IsValidPassword(payload.Password, "password")
-	if !v.Valid() {
-		c.IndentedJSON(500, gin.H{
-			"error": v.GetErrMsg(),
-		})
-		return
-	}
-
-	// check if the token is exist
-	userToken, isValid := m.App.DBMethods.ValidateForgotPasswordToken(payload.Token)
-	if !isValid {
-		c.IndentedJSON(403, gin.H{
-			"error": "The link is already expired",
-		})
-		return
-	}
-
-	// fetch the user
-	user, err := m.App.DBMethods.GetUserByID(userToken.ID)
-	if err != nil || user.ID == 0 {
-		c.IndentedJSON(404, gin.H{
-			"error": "The user account password you want to change is not found.",
-		})
-		return
-	}
-
-	// Update password
-	// hash the password
-	hash, err := bcrypt.GenerateFromPassword([]byte(payload.Password), 12)
+	err := m.App.Mailer.SendSmtpMessage(msg)
 	if err != nil {
-		c.IndentedJSON(http.StatusInternalServerError, gin.H{
-			"error": "something went wrong. please try again later.",
-		})
-		return
+		log.Println("failed to send the mail", err)
 	}
-
-	user.Password = string(hash)
-	err = m.App.DBMethods.UpdateUserPassword(user)
-	if err != nil {
-		c.IndentedJSON(http.StatusInternalServerError, gin.H{
-			"error": "something went wrong. please try again later.",
-		})
-		return
-	}
-
-	// delete token
-	_ = m.App.DBMethods.DeleteUserForgotToken(userToken.ID)
 
 	c.JSON(200, gin.H{
-		"message": "User is verified",
-		"user_id": userToken.UserID,
+		"message": "Email has been send successfully",
 	})
-
 }
