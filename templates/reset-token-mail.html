@@ -1,0 +1,19 @@
+{{define "body"}}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="Content-Type" content="text/html: charset=UTF-8" />
+  <title>Password Reset Request</title>
+</head>
+<body>
+  <p>Dear {{.UserName}},</p>
+  <p>We received a request to reset the password for your account. If you did not initiate this request, please disregard this email.</p>
+  <p>To reset your password, please click on the following link:</p>
+  <a href="{{.VerifyLink}}">{{.VerifyLink}}</a>
+</body>
+</html>
+
+{{end}}

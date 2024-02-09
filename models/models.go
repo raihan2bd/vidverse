@@ -98,7 +98,7 @@ type VideoDTO struct {
 	ChannelID    uint      `json:"channel_id"`
 	ChannelTitle string    `json:"channel_title"`
 	ChannelLogo  string    `json:"channel_logo"`
-	CreatedAt    time.Time `json:"created_at",omitempty`
+	CreatedAt    time.Time `json:"created_at"`
 }
 
 type Like struct {
