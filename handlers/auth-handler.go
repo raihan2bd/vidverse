@@ -373,8 +373,8 @@ func (m *Repo) RequestPasswordReset(c *gin.Context) {
 
 	user, err := m.App.DBMethods.GetUserByEmail(payload.Email)
 	if err != nil {
-		c.IndentedJSON(500, gin.H{
-			"error": "Internal server error. Please try again",
+		c.IndentedJSON(404, gin.H{
+			"error": "The account you are trying to reset is not found!",
 		})
 		return
 	}
@@ -456,7 +456,7 @@ func (m *Repo) VerifyPasswordReset(c *gin.Context) {
 
 	user, err := m.App.DBMethods.GetUserByEmail(payload.Email)
 	if err != nil {
-		c.IndentedJSON(500, gin.H{
+		c.IndentedJSON(404, gin.H{
 			"error": "The account you are trying to reset is not found!",
 		})
 		return
