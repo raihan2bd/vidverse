@@ -110,7 +110,13 @@ func (m *postgresDBRepo) AddForgotPasswordToken(userToken *models.Token) error {
 
 // Update user password
 func (m *postgresDBRepo) UpdateUserPassword(user *models.User) error {
-	result := m.DB.Model(&user).Update("password", user.Password)
+	// result := m.DB.Model(&user).Update("password", user.Password)
+	// update user password and remove the OTP and OTPTimeOut
+	result := m.DB.Model(&user).Updates(map[string]interface{}{
+		"password":     user.Password,
+		"otp":          "",
+		"otp_time_out": nil,
+	})
 
 	if result.Error != nil {
 		return errors.New("failed to update the user password")

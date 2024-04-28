@@ -387,8 +387,10 @@ func (m *Repo) RequestPasswordReset(c *gin.Context) {
 	}
 
 	// send secred OTP to the user email
-	otp := rand.Intn(999999)
-	fmt.Println("OTP: ", otp)
+
+	min := 100000
+	max := 999999
+	otp := rand.Intn(max-min+1) + min
 
 	// save the OTP to the database
 	user.OTP = strconv.Itoa(otp)
@@ -425,6 +427,145 @@ func (m *Repo) RequestPasswordReset(c *gin.Context) {
 	c.IndentedJSON(201, gin.H{
 		"message": "An email has been sent to you. Please check your inbox and verify yourself",
 	})
+}
+
+func (m *Repo) VerifyPasswordReset(c *gin.Context) {
+	type UserOTP struct {
+		Email string `json:"email"`
+		OTP   string `json:"otp"`
+	}
+	var payload UserOTP
+
+	if err := c.BindJSON(&payload); err != nil {
+		c.IndentedJSON(http.StatusBadRequest, gin.H{
+			"error": "Invalid email",
+		})
+		return
+	}
+
+	v := validator.New()
+	v.IsEmail(payload.Email, "email", "Invalid email. Please provide a valid email")
+	v.IsLength(payload.OTP, "otp", 6, 6)
+
+	if !v.Valid() {
+		c.IndentedJSON(400, gin.H{
+			"error": "Invalid email address. Please provide a valid email.",
+		})
+		return
+	}
+
+	user, err := m.App.DBMethods.GetUserByEmail(payload.Email)
+	if err != nil {
+		c.IndentedJSON(500, gin.H{
+			"error": "The account you are trying to reset is not found!",
+		})
+		return
+	}
+
+	if user == nil || (user.Email != payload.Email) {
+		c.IndentedJSON(404, gin.H{
+			"error": "The account you are trying to reset is not found!",
+		})
+		return
+	}
+
+	if user.OTP != payload.OTP {
+		c.IndentedJSON(400, gin.H{
+			"error": "Invalid OTP",
+		})
+		return
+	}
+
+	if user.OTPTimeOut.Before(time.Now()) {
+		c.IndentedJSON(400, gin.H{
+			"error": "OTP is expired",
+		})
+		return
+	}
+
+	c.IndentedJSON(200, gin.H{
+		"message": "OTP is verified",
+		"user_id": user.ID,
+	})
+}
+
+func (m *Repo) ResetPassword(c *gin.Context) {
+	type UserPassword struct {
+		UserID   uint   `json:"user_id"`
+		Password string `json:"password"`
+		OTP      string `json:"otp"`
+	}
+
+	var payload UserPassword
+
+	if err := c.BindJSON(&payload); err != nil {
+		c.IndentedJSON(http.StatusBadRequest, gin.H{
+			"error": "Invalid payload",
+		})
+		return
+	}
+
+	// validate password
+	v := validator.New()
+	v.IsLength(payload.Password, "password", 6, 255)
+	v.IsValidPassword(payload.Password, "password")
+	v.IsLength(payload.OTP, "otp", 6, 6)
+
+	if !v.Valid() {
+		c.IndentedJSON(500, gin.H{
+			"error": v.GetErrMsg(),
+		})
+		return
+	}
+
+	// fetch the user
+	user, err := m.App.DBMethods.GetUserByID(payload.UserID)
+	if err != nil || user.ID == 0 {
+		c.IndentedJSON(404, gin.H{
+			"error": "The user account password you want to change is not found.",
+		})
+		return
+	}
+
+	if user.OTP != payload.OTP {
+		c.IndentedJSON(400, gin.H{
+			"error": "The OTP you provided is not valid",
+		})
+
+		return
+	}
+
+	if user.OTPTimeOut.Before(time.Now()) {
+		c.IndentedJSON(400, gin.H{
+			"error": "The OTP you provided is not valid",
+		})
+		return
+	}
+
+	// Update password
+	// hash the password
+	hash, err := bcrypt.GenerateFromPassword([]byte(payload.Password), 12)
+	if err != nil {
+		c.IndentedJSON(http.StatusInternalServerError, gin.H{
+			"error": "something went wrong. please try again later.",
+		})
+		return
+	}
+
+	user.Password = string(hash)
+	err = m.App.DBMethods.UpdateUserPassword(user)
+	if err != nil {
+		c.IndentedJSON(http.StatusInternalServerError, gin.H{
+			"error": "something went wrong. please try again later.",
+		})
+		return
+	}
+
+	c.JSON(200, gin.H{
+		"message": "User Password is updated successfully",
+		"user_id": user.ID,
+	})
+
 }
 
 func (m *Repo) SendMail(c *gin.Context) {
