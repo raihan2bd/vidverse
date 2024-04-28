@@ -6,6 +6,7 @@ import (
 	"math/rand"
 	"net/http"
 	"os"
+	"strconv"
 	"strings"
 	"time"
 
@@ -387,15 +388,12 @@ func (m *Repo) RequestPasswordReset(c *gin.Context) {
 
 	// send secred OTP to the user email
 	otp := rand.Intn(999999)
-	if err != nil {
-		c.IndentedJSON(500, gin.H{
-			"error": "Internal server error. Please try again",
-		})
-		return
-	}
+	fmt.Println("OTP: ", otp)
 
 	// save the OTP to the database
-	user.OTP = otp.String()
+	user.OTP = strconv.Itoa(otp)
+	// set Otp validation time 10 mins
+	user.OTPTimeOut = time.Now().Add(time.Minute * 10)
 	err = m.App.DBMethods.UpdateUserOTP(user)
 	if err != nil {
 		c.IndentedJSON(500, gin.H{
@@ -406,7 +404,7 @@ func (m *Repo) RequestPasswordReset(c *gin.Context) {
 
 	data := map[string]any{
 		"UserName": user.Name,
-		"OTP":      user.OTP,
+		"OTP":      otp,
 	}
 
 	// send email

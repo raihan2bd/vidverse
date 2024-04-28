@@ -33,7 +33,10 @@ func (m *postgresDBRepo) GetUserByUsername(username string) (*models.User, error
 // Get user by email
 func (m *postgresDBRepo) GetUserByEmail(email string) (*models.User, error) {
 	var user models.User
-	m.DB.First(&user, "email = ?", email)
+	result := m.DB.First(&user, "email = ?", email)
+	if result.Error != nil {
+		return nil, errors.New("404 user not found")
+	}
 	if user.ID > 0 {
 		return &user, nil
 	}
@@ -51,6 +54,34 @@ func (m *postgresDBRepo) GetUserByID(id uint) (*models.User, error) {
 	user.Password = ""
 
 	return &user, nil
+}
+
+// Update user OTP
+func (m *postgresDBRepo) UpdateUserOTP(user *models.User) error {
+	result := m.DB.Model(&user).Updates(map[string]interface{}{
+		"otp":          user.OTP,
+		"otp_time_out": user.OTPTimeOut,
+	})
+
+	if result.Error != nil {
+		return errors.New("failed to update the user OTP")
+	}
+
+	return nil
+}
+
+// remove user OTP
+func (m *postgresDBRepo) RemoveUserOTP(user *models.User) error {
+	result := m.DB.Model(&user).Updates(map[string]interface{}{
+		"otp":          "",
+		"otp_time_out": nil,
+	})
+
+	if result.Error != nil {
+		return errors.New("failed to remove the user OTP")
+	}
+
+	return nil
 }
 
 // Add forgot password token

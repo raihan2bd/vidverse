@@ -17,11 +17,13 @@ type User struct {
 	CustomModel
 	Name string `gorm:"type:varchar(100);not null" json:"name"`
 	// UserName string `gorm:"type:varchar(100);unique;not null" json:"username"`
-	Email    string `gorm:"type:varchar(255);unique;not null" json:"email"`
-	Password string `gorm:"type:varchar(255);not null" json:"-"`
-	Avatar   string `gorm:"type:varchar(255);not null;default:'https://upload.wikimedia.org/wikipedia/commons/5/59/User-avatar.svg'" json:"avatar"`
-	IsActive bool   `gorm:"type:boolean;not null;default:false" json:"is_active"`
-	UserRole string `gorm:"type:varchar(150);not null;default:'user'" json:"user_role"`
+	Email      string    `gorm:"type:varchar(255);unique;not null" json:"email"`
+	Password   string    `gorm:"type:varchar(255);not null" json:"-"`
+	Avatar     string    `gorm:"type:varchar(255);not null;default:'https://upload.wikimedia.org/wikipedia/commons/5/59/User-avatar.svg'" json:"avatar"`
+	IsActive   bool      `gorm:"type:boolean;not null;default:false" json:"is_active"`
+	UserRole   string    `gorm:"type:varchar(150);not null;default:'user'" json:"user_role"`
+	OTP        string    `gorm:"type:varchar(6);" json:"-"`
+	OTPTimeOut time.Time `json:"-"`
 }
 
 type Token struct {

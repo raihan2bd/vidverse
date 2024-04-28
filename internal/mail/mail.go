@@ -33,6 +33,7 @@ type Message struct {
 }
 
 func (m *Mail) SendSmtpMessage(msg Message) error {
+	fmt.Println("Sending email to: ", msg.To)
 	if msg.From == "" {
 		msg.From = m.FromAddress
 	}
@@ -106,7 +107,7 @@ func (m *Mail) buildPlainTextMessage(msg Message) (string, error) {
 	var tpl bytes.Buffer
 
 	if msg.IsResetPass {
-		msg.DataMap["message"] = fmt.Sprintf("Dear %s We received a request to reset the password for your account. If you did not initiate this request, please disregard this email. To reset your password, please click on the following link %s", msg.DataMap["UserName"], msg.DataMap["VerifyLink"])
+		msg.DataMap["message"] = fmt.Sprintf("Dear %s,\n\nWe received a request to reset the password for your account. If you did not initiate this request, please disregard this email.\n\nYour Secret code is %s\n\nPlease use this code to reset your password. If you did not request a password reset, please ignore this email or contact support if you have any questions.", msg.DataMap["UserName"], msg.DataMap["OTP"])
 	}
 
 	if err = t.ExecuteTemplate(&tpl, "body", msg.DataMap); err != nil {
@@ -121,7 +122,7 @@ func (m *Mail) buildPlainTextMessage(msg Message) (string, error) {
 func (m *Mail) buildHTMLMessage(msg Message) (string, error) {
 	var templateToRender string
 	if msg.IsResetPass {
-		templateToRender = "templates/reset-token-mail.html"
+		templateToRender = "templates/password-reset-request.html"
 	} else {
 		templateToRender = "templates/mail.html"
 	}
