@@ -386,6 +386,14 @@ func (m *Repo) RequestPasswordReset(c *gin.Context) {
 		return
 	}
 
+	// check if the user has already requested for OTP and it's not pass 60 seconds
+	if user.OTP != "" && time.Until(user.OTPTimeOut).Minutes() >= 9 {
+		c.IndentedJSON(400, gin.H{
+			"error": "You have already requested for OTP. Please check your email",
+		})
+		return
+	}
+
 	// send secred OTP to the user email
 
 	min := 100000
@@ -418,11 +426,12 @@ func (m *Repo) RequestPasswordReset(c *gin.Context) {
 		DataMap:     data,
 	}
 
-	err = m.App.Mailer.SendSmtpMessage(msg)
-	if err != nil {
-		c.JSON(500, gin.H{"error": "Failed to send the email. Please make sure your email is correct."})
-		return
-	}
+	go func() {
+		err = m.App.Mailer.SendSmtpMessage(msg)
+		if err != nil {
+			c.JSON(500, gin.H{"error": "Failed to send the email. Please make sure your email is correct."})
+		}
+	}()
 
 	c.IndentedJSON(201, gin.H{
 		"message": "An email has been sent to you. Please check your inbox and verify yourself",
@@ -444,7 +453,7 @@ func (m *Repo) VerifyPasswordReset(c *gin.Context) {
 	}
 
 	v := validator.New()
-	v.IsEmail(payload.Email, "email", "Invalid email. Please provide a valid email")
+	v.IsEmail(payload.Email, "email", "Invalid Email or OTP.")
 	v.IsLength(payload.OTP, "otp", 6, 6)
 
 	if !v.Valid() {
