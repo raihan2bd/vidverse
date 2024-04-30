@@ -1,6 +1,7 @@
 package config
 
 import (
+	"log"
 	"os"
 	"strconv"
 
@@ -11,6 +12,11 @@ import (
 	"github.com/raihan2bd/vidverse/repository"
 	dbrepo "github.com/raihan2bd/vidverse/repository/dbRepo"
 	"gorm.io/gorm"
+
+	"context"
+
+	firebase "firebase.google.com/go"
+	"google.golang.org/api/option"
 )
 
 type Application struct {
@@ -19,6 +25,7 @@ type Application struct {
 	DBMethods        repository.DatabaseRepo
 	NotificationChan chan *NotificationEvent
 	Mailer           mail.Mail
+	FirebaseApp      *firebase.App
 }
 
 type NotificationEvent struct {
@@ -62,11 +69,32 @@ func LoadConfig() (*Application, error) {
 		FromAddress: os.Getenv("MAIL_FROM_ADDRESS"),
 	}
 
+	ctx := context.Background()
+	// Initialize Firebase and set it in the config.
+	app, err := initFirebase(ctx)
+	if err != nil {
+		log.Fatalf("error initializing Firebase: %v", err)
+	}
 	return &Application{
 		DB:               db,
 		DBMethods:        dbrepo.NewPostgresRepo(initializers.DB, initializers.CLD),
 		CLD:              cld,
 		NotificationChan: make(chan *NotificationEvent),
 		Mailer:           m,
+		FirebaseApp:      app,
 	}, nil
+}
+
+func initFirebase(ctx context.Context) (*firebase.App, error) {
+	// Initialize the Firebase Admin SDK.
+	firebaseConfig := &firebase.Config{
+		ProjectID: "vidverse-21e69",
+	}
+	opt := option.WithCredentialsFile("service-account.json")
+	app, err := firebase.NewApp(ctx, firebaseConfig, opt)
+	if err != nil {
+		return nil, err
+	}
+
+	return app, nil
 }

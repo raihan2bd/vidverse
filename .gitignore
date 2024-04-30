@@ -1,3 +1,5 @@
 /tmp
 .env
 ./uploads/videos
+serviceAccountKey.json
+service-account.json

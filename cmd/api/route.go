@@ -29,6 +29,9 @@ func NewRouter() *gin.Engine {
 	v1.POST("/auth/reset-password", handlers.Methods.ResetPassword)
 	// v1.POST("/auth/request_forgot_password", handlers.Methods.RequestForgotPassword)
 
+	// social auth
+	v1.POST("/auth/social_login", handlers.Methods.SocialLogin)
+
 	v1.GET("/videos", handlers.Methods.HandleGetAllVideos)
 	v1.POST("/videos", isAuthor, handlers.Methods.HandleCreateVideo)
 	v1.POST("/videos/:videoID", isAuthor, handlers.Methods.HandleUpdateVideo)

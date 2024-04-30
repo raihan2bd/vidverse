@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"math/rand"
@@ -609,4 +610,64 @@ func (m *Repo) SendMail(c *gin.Context) {
 	c.JSON(200, gin.H{
 		"message": "Email has been send successfully",
 	})
+}
+
+func (m *Repo) SocialLogin(c *gin.Context) {
+	// get id token from the request
+	type SocialToken struct {
+		Token string `json:"token"`
+	}
+	var payload SocialToken
+
+	if err := c.BindJSON(&payload); err != nil {
+		c.IndentedJSON(http.StatusBadRequest, gin.H{
+			"error": "Invalid token",
+		})
+		return
+	}
+
+	ctx := context.Background()
+	// verify the firebase token
+	client, err := m.App.FirebaseApp.Auth(context.Background())
+	if err != nil {
+		fmt.Println(err.Error())
+		c.IndentedJSON(http.StatusInternalServerError, gin.H{
+
+			"error": "Internal server error. Please try again later.",
+		})
+		return
+	}
+
+	token, err := client.VerifyIDToken(ctx, payload.Token)
+
+	if err != nil {
+		c.IndentedJSON(http.StatusBadRequest, gin.H{
+			"error": "Invalid token",
+		})
+		return
+	}
+
+	// get the user info from the token
+	// user := models.User{
+	// 	Name:     token.Claims["name"].(string),
+	// 	Email:    token.Claims["email"].(string),
+	// 	Avatar:   token.Claims["picture"].(string),
+	// 	UserRole: "user",
+	// }
+
+	// get user info from the firebase token
+	// token, err := m.App.FirebaseApp.Auth(ctx).VerifyIDToken(ctx, idToken)
+	//   if err != nil {
+	//       http.Error(w, "Failed to verify ID token", http.StatusUnauthorized)
+	//       return
+	//   }
+
+	// Retrieve user information from the token.
+	user := token.Claims
+	fmt.Println(user)
+
+	c.JSON(200, gin.H{
+		"user": user,
+	})
+
 }
