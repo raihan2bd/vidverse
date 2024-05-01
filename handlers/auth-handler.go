@@ -628,7 +628,7 @@ func (m *Repo) SocialLogin(c *gin.Context) {
 
 	ctx := context.Background()
 	// verify the firebase token
-	client, err := m.App.FirebaseApp.Auth(context.Background())
+	client, err := m.App.FirebaseApp.Auth(ctx)
 	if err != nil {
 		fmt.Println(err.Error())
 		c.IndentedJSON(http.StatusInternalServerError, gin.H{
@@ -647,27 +647,91 @@ func (m *Repo) SocialLogin(c *gin.Context) {
 		return
 	}
 
-	// get the user info from the token
-	// user := models.User{
-	// 	Name:     token.Claims["name"].(string),
-	// 	Email:    token.Claims["email"].(string),
-	// 	Avatar:   token.Claims["picture"].(string),
-	// 	UserRole: "user",
+	userInfo := token.Claims
+	// structure the user info
+
+	user, _ := m.App.DBMethods.GetUserByEmail(userInfo["email"].(string))
+
+	// if user == nil {
+	// 	c.IndentedJSON(http.StatusUnauthorized, gin.H{
+	// 		"error": "Invalid email or password",
+	// 	})
+	// 	return
 	// }
 
-	// get user info from the firebase token
-	// token, err := m.App.FirebaseApp.Auth(ctx).VerifyIDToken(ctx, idToken)
-	//   if err != nil {
-	//       http.Error(w, "Failed to verify ID token", http.StatusUnauthorized)
-	//       return
-	//   }
+	if user == nil || user.ID == 0 {
+		// save the info into the database
+		newUser := models.User{
+			Name:     userInfo["name"].(string),
+			Email:    userInfo["email"].(string),
+			Avatar:   userInfo["picture"].(string),
+			UserRole: "user",
+			ACCType:  "social",
+		}
 
-	// Retrieve user information from the token.
-	user := token.Claims
-	fmt.Println(user)
+		id, err := m.App.DBMethods.CreateNewUser(&newUser)
+		if err != nil {
+			c.IndentedJSON(http.StatusInternalServerError, gin.H{
+				"error": err,
+			})
+			return
+		}
+		if id <= 0 {
+			c.IndentedJSON(http.StatusInternalServerError, gin.H{
+				"error": "Failed to create user",
+			})
+			return
+		}
 
-	c.JSON(200, gin.H{
-		"user": user,
+		user, err = m.App.DBMethods.GetUserByEmail(userInfo["email"].(string))
+		if err != nil {
+			c.IndentedJSON(http.StatusInternalServerError, gin.H{
+				"error": err,
+			})
+			return
+		}
+
+	}
+
+	exp := time.Now().Add(time.Hour * 24 * 7).Unix()
+
+	// Generate Token
+	newToken := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
+		"sub":       user.ID,
+		"user_role": user.UserRole,
+		"user_name": user.Name,
+		"exp":       exp,
+	})
+
+	jwtSecret := os.Getenv("JWT_SECRET")
+
+	tokenString, err := newToken.SignedString([]byte(jwtSecret))
+
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"message": "Failed to create token",
+		})
+
+		return
+	}
+
+	var userResponse struct {
+		ID       uint   `json:"id"`
+		Username string `json:"user_name"`
+		UserRole string `json:"user_role"`
+		Avatar   string `json:"avatar"`
+	}
+
+	userResponse.ID = user.ID
+	userResponse.UserRole = user.UserRole
+	userResponse.Avatar = user.Avatar
+	userResponse.Username = user.Name
+
+	// send it as a response
+	c.IndentedJSON(http.StatusOK, gin.H{
+		"user":       userResponse,
+		"token":      tokenString,
+		"expires_at": exp,
 	})
 
 }
