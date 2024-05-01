@@ -90,7 +90,7 @@ func initFirebase(ctx context.Context) (*firebase.App, error) {
 	firebaseConfig := &firebase.Config{
 		ProjectID: "vidverse-21e69",
 	}
-	opt := option.WithCredentialsFile("service-account.json")
+	opt := option.WithCredentialsFile("./service-account.json")
 	app, err := firebase.NewApp(ctx, firebaseConfig, opt)
 	if err != nil {
 		return nil, err
