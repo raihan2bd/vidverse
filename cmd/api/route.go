@@ -43,6 +43,13 @@ func NewRouter() *gin.Engine {
 	v1.GET("/related_videos/:channelID", handlers.Methods.HandleGetRelatedVideos)
 	v1.GET("/file/video/:videoID", handlers.Methods.StreamVideoBuff)
 
+	// routes for shots
+	v1.POST("/shots", isAuthor, handlers.Methods.HandleCreateShot)
+	v1.GET("/shots", handlers.Methods.HandleGetAllShots)
+	v1.GET("/shots/:shortID", handlers.Methods.HandleGetSingleShot)
+	v1.PATCH("/shots/:shotID", isAuthor, handlers.Methods.HandleUpdateShot)
+	v1.DELETE("/shots/:shotID", isAuthor, handlers.Methods.HandleDeleteShot)
+
 	v1.GET("/subscribed_channels/:channelID", IsLoggedIn, handlers.Methods.HandleGetSubscribedChannels)
 	v1.GET("/notifications", IsLoggedIn, handlers.Methods.HandleGetNotifications)
 	v1.PATCH("/notifications/:notificationID", IsLoggedIn, handlers.Methods.HandleUpdateNotification)
