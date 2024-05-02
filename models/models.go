@@ -107,18 +107,22 @@ type VideoDTO struct {
 type Like struct {
 	CustomModel
 	UserID  uint  `json:"user_id"`
-	VideoID uint  `json:"video_id"`
+	VideoID uint  `json:"video_id,omitempty"`
 	Video   Video `gorm:"foreignKey:VideoID"`
 	User    User  `gorm:"foreignKey:UserID"`
+	ShotID  uint  `json:"shot_id,omitempty"`
+	Shot    Shot  `gorm:"foreignKey:ShotID"`
 }
 
 type Comment struct {
 	CustomModel
 	Text    string `gorm:"type:text;size:500" json:"text"`
 	UserID  uint   `json:"user_id"`
-	VideoID uint   `json:"video_id"`
+	VideoID uint   `json:"video_id,omitempty"`
 	Video   Video  `gorm:"foreignKey:VideoID"`
 	User    User   `gorm:"foreignKey:UserID"`
+	ShotID  uint   `json:"shot_id,omitempty"`
+	Shot    Shot   `gorm:"foreignKey:ShotID"`
 }
 
 type CommentDTO struct {
@@ -173,4 +177,27 @@ type ContactUs struct {
 	Message     string `gorm:"type:text;size:500;not null" json:"message"`
 	IsForAuthor bool   `gorm:"type:boolean;not null;default:false" json:"is_for_author"`
 	UserID      uint   `gorm:"foreignKey:UserID" json:"user_id,omitempty"`
+}
+
+// model for shots
+type Shot struct {
+	CustomModel
+	Title         string    `gorm:"type:varchar(255);not null" json:"title,omitempty" binding:"required,min=2,max=255"`
+	Description   string    `gorm:"type:text;size:500;not null" json:"description,omitempty" binding:"required,min=2,max=500"`
+	PublicID      string    `gorm:"type:varchar(255);not null" json:"-"`
+	SecureURL     string    `gorm:"type:varchar(255);not null" json:"secure_url,omitempty"`
+	Thumb         string    `gorm:"type:varchar(255)" json:"tumb,omitempty"`
+	Likes         []Like    `json:"likes,omitempty"`
+	Comments      []Comment `json:"comments,omitempty"`
+	ChannelID     uint      `json:"channel_id,omitempty"`
+	Views         int64     `gorm:"type:bigint;not null;default:0" json:"views,omitempty"`
+	ThumbPublicID string    `gorm:"type:varchar(255)" json:"-"`
+}
+
+type ShotDTO struct {
+	ID        uint      `json:"id"`
+	Title     string    `json:"title"`
+	Thumb     string    `json:"thumb"`
+	Views     int64     `json:"views"`
+	CreatedAt time.Time `json:"created_at"`
 }
