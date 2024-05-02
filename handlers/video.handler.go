@@ -200,7 +200,7 @@ func (m *Repo) HandleCreateVideo(c *gin.Context) {
 		// delete thumbnail from cloudinary
 		_ = helpers.DeleteImageFromCloudinary(ctx, m.App.CLD, thumbPublicID)
 		// delete video from cloudinary
-		_ = helpers.DeleteImageFromCloudinary(ctx, m.App.CLD, videoPublicID)
+		_ = helpers.DeleteVideoFromCloudinary(ctx, m.App.CLD, videoPublicID)
 
 		c.IndentedJSON(http.StatusInternalServerError, gin.H{
 			"error": "Failed to create the video",

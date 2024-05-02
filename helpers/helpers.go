@@ -117,6 +117,21 @@ func UploadVideoToCloudinary(ctx context.Context, CLD *cloudinary.Cloudinary, vi
 	return resp.SecureURL, resp.PublicID, nil
 }
 
+// Updload shot to cloudinary
+func UploadShotToCloudinary(ctx context.Context, CLD *cloudinary.Cloudinary, shot multipart.File, uploadPath ...string) (string, string, error) {
+	folder := "vidverse/uploads/shots"
+	if len(uploadPath) > 0 {
+		folder = uploadPath[0]
+	}
+	resp, err := CLD.Upload.Upload(ctx, shot, uploader.UploadParams{
+		Folder: folder,
+	})
+	if err != nil {
+		return "", "", err
+	}
+	return resp.SecureURL, resp.PublicID, nil
+}
+
 // delete video from cloudinary
 func DeleteVideoFromCloudinary(ctx context.Context, CLD *cloudinary.Cloudinary, publicID string) error {
 	_, err := CLD.Upload.Destroy(ctx, uploader.DestroyParams{PublicID: publicID, ResourceType: "video"})

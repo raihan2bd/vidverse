@@ -23,6 +23,8 @@ type DatabaseRepo interface {
 	CreateVideo(video *models.Video) (uint, error)
 	UpdateVideo(video *models.Video) error
 
+	CreateShot(shot *models.Shot) (uint, error)
+
 	GetCommentsByVideoID(id, page, limit int) ([]models.CommentDTO, int64, error)
 	GetCommentByID(id uint) (*models.Comment, error)
 	CreateComment(comment *models.Comment) (uint, error)

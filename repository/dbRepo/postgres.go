@@ -210,6 +210,16 @@ func (m *postgresDBRepo) CreateVideo(video *models.Video) (uint, error) {
 	return video.ID, nil
 }
 
+// Create Short
+func (m *postgresDBRepo) CreateShot(shot *models.Shot) (uint, error) {
+	result := m.DB.Create(&shot)
+	if result.Error != nil {
+		return 0, errors.New("failed to create the shot")
+	}
+
+	return shot.ID, nil
+}
+
 // Update video
 func (m *postgresDBRepo) UpdateVideo(video *models.Video) error {
 	result := m.DB.Save(&video)

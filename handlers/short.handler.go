@@ -1,10 +1,12 @@
 package handlers
 
 import (
+	"context"
 	"net/http"
 	"strconv"
 
 	"github.com/gin-gonic/gin"
+	"github.com/raihan2bd/vidverse/helpers"
 	"github.com/raihan2bd/vidverse/models"
 	validator "github.com/raihan2bd/vidverse/validators"
 )
@@ -38,13 +40,13 @@ func (m *Repo) HandleCreateShot(c *gin.Context) {
 		}
 	}
 
-	shortFile, fileInfo, err := c.Request.FormFile("short")
+	videoFile, fileInfo, err := c.Request.FormFile("video")
 	if err != nil {
 		c.IndentedJSON(400, gin.H{"error": "File is required."})
 		return
 	} else if fileInfo == nil {
-		defer shortFile.Close()
-		c.IndentedJSON(400, gin.H{"error": "short is required."})
+		defer videoFile.Close()
+		c.IndentedJSON(400, gin.H{"error": "video is required."})
 		return
 	}
 
@@ -59,7 +61,7 @@ func (m *Repo) HandleCreateShot(c *gin.Context) {
 
 	// validate video
 	validator.IsVideo(fileInfo.Header.Get("Content-Type"), "video")
-	validator.IsVideoSize(fileInfo.Size, 100*1024*1024, "video")
+	validator.IsVideoSize(fileInfo.Size, 50*1024*1024, "video")
 
 	// Todo: add image upload system later
 
@@ -92,4 +94,66 @@ func (m *Repo) HandleCreateShot(c *gin.Context) {
 		})
 		return
 	}
+
+	// check the channel is available or not
+	var channel *models.CustomChannelDTO
+	channel, err = m.App.DBMethods.GetChannelByID(channelID)
+	if err != nil || channel.ID == 0 {
+		c.IndentedJSON(http.StatusNotFound, gin.H{
+			"error": "The channel you want to upload video is not found!",
+		})
+		return
+	}
+
+	// check if the channel user is the same or not
+	if channel.UserID != userID {
+		if user.UserRole != "admin" {
+			c.JSON(http.StatusForbidden, gin.H{
+				"error": "Access denied! You are not allowed to upload video to this channel",
+			})
+			return
+		}
+	}
+
+	// upload video to cloudinary
+	ctx := context.Background()
+	var secureURL, videoPublicID string
+	secureURL, videoPublicID, err = helpers.UploadShotToCloudinary(ctx, m.App.CLD, videoFile)
+	if err != nil {
+		c.IndentedJSON(http.StatusInternalServerError, gin.H{
+			"error": "Failed to upload the video",
+		})
+		return
+	}
+
+	if thumbFileInfo != nil && thumbFile != nil {
+		// upload thumb to cloudinary
+		thumbSecureURL, thumbPublicID, err = helpers.UploadImageToCloudinary(ctx, m.App.CLD, thumbFile, "vidverse/uploads/thumbs")
+		if err != nil {
+			thumbSecureURL = m.generateThumbURL(videoPublicID)
+		}
+	} else {
+		// generate thumb url
+		thumbSecureURL = m.generateThumbURL(videoPublicID)
+	}
+
+	video := models.Shot{Title: title, Description: description, PublicID: videoPublicID, SecureURL: secureURL, ChannelID: channel.ID, Thumb: thumbSecureURL, ThumbPublicID: thumbPublicID}
+
+	videoID, err := m.App.DBMethods.CreateShot(&video)
+	if err != nil {
+		// delete thumbnail from cloudinary
+		_ = helpers.DeleteImageFromCloudinary(ctx, m.App.CLD, thumbPublicID)
+		// delete video from cloudinary
+		_ = helpers.DeleteVideoFromCloudinary(ctx, m.App.CLD, videoPublicID)
+
+		c.IndentedJSON(http.StatusInternalServerError, gin.H{
+			"error": "Failed to create the video",
+		})
+		return
+	}
+
+	c.IndentedJSON(http.StatusCreated, gin.H{
+		"message":  "Successfully created the video",
+		"video_id": videoID,
+	})
 }
