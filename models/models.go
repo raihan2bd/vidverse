@@ -201,3 +201,12 @@ type ShotDTO struct {
 	Views     int64     `json:"views"`
 	CreatedAt time.Time `json:"created_at"`
 }
+
+// model to save watch later
+type WatchLater struct {
+	CustomModel
+	UserID  uint  `json:"user_id"`
+	VideoID uint  `json:"video_id"`
+	Videos  Video `gorm:"foreignKey:VideoID" json:"videos"`
+	User    User  `gorm:"foreignKey:UserID" json:"user"`
+}
