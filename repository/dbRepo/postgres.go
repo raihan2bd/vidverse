@@ -482,3 +482,13 @@ func (m *postgresDBRepo) GetLikedVideos(userIDUint uint, page, limit int) ([]mod
 
 	return videos, count, nil
 }
+
+// CreateWatchLater create watch later
+func (m *postgresDBRepo) CreateWatchLater(watchLater *models.WatchLater) error {
+	result := m.DB.Create(&watchLater)
+	if result.Error != nil {
+		return errors.New("failed to create watch later")
+	}
+
+	return nil
+}

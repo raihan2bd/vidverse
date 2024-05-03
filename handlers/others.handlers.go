@@ -277,3 +277,44 @@ func (m *Repo) HandleGetLikedVideos(c *gin.Context) {
 
 	c.JSON(200, gin.H{"videos": videos, "total": total, "has_next_page": has_next_page, "page": page})
 }
+
+// Handle Watch later
+func (m *Repo) HandleWatchLater(c *gin.Context) {
+	userID, ok := c.Get("user_id")
+	if !ok {
+		c.JSON(401, gin.H{"error": "unauthorized"})
+		return
+	}
+
+	userIDUint := uint(userID.(float64))
+	if userIDUint == 0 {
+		c.JSON(401, gin.H{"error": "unauthorized"})
+		return
+	}
+
+	var payload struct {
+		VideoID uint `json:"video_id"`
+	}
+	err := c.ShouldBindJSON(&payload)
+	if err != nil {
+		c.JSON(400, gin.H{"error": err.Error()})
+		return
+	}
+
+	if payload.VideoID == 0 {
+		c.JSON(400, gin.H{"error": "invalid video id"})
+		return
+	}
+
+	var watchLater models.WatchLater
+	watchLater.UserID = userIDUint
+	watchLater.VideoID = payload.VideoID
+
+	err = m.App.DBMethods.CreateWatchLater(&watchLater)
+	if err != nil {
+		c.JSON(500, gin.H{"error": "internal server error"})
+		return
+	}
+
+	c.JSON(201, gin.H{"message": "video added to watch later"})
+}

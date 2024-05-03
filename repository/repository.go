@@ -59,4 +59,7 @@ type DatabaseRepo interface {
 
 	CreateContactUs(contactUs *models.ContactUs) error
 	IsContactUsSubmitted(email string) bool
+
+	// Watch Later
+	CreateWatchLater(watchLater *models.WatchLater) error
 }
