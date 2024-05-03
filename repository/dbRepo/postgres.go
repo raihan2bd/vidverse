@@ -492,3 +492,24 @@ func (m *postgresDBRepo) CreateWatchLater(watchLater *models.WatchLater) error {
 
 	return nil
 }
+
+// Get all watch later videos by user ID with pagination
+func (m *postgresDBRepo) GetWatchLaterVideos(userIDUint uint, page, limit int) ([]models.VideoDTO, int64, error) {
+	var videos []models.VideoDTO
+	var count int64
+	offset := (page - 1) * limit
+
+	err := m.DB.Table("videos").Select("videos.id, videos.title, videos.thumb, videos.views, channels.id as channel_id, channels.title as channel_title, channels.logo as channel_logo").
+		Joins("left join channels on channels.id = videos.channel_id").
+		Joins("left join watch_laters on watch_laters.video_id = videos.id").
+		Where("watch_laters.user_id = ?", userIDUint).
+		Count(&count).
+		Offset(offset).Limit(limit).
+		Order("videos.created_at asc").
+		Find(&videos).Error
+	if err != nil {
+		return nil, 0, errors.New("internal server error. Please try again")
+	}
+
+	return videos, count, nil
+}

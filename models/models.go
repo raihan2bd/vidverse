@@ -110,8 +110,6 @@ type Like struct {
 	VideoID uint  `json:"video_id,omitempty"`
 	Video   Video `gorm:"foreignKey:VideoID"`
 	User    User  `gorm:"foreignKey:UserID"`
-	ShotID  uint  `json:"shot_id,omitempty"`
-	Shot    Shot  `gorm:"foreignKey:ShotID"`
 }
 
 type Comment struct {
@@ -121,8 +119,6 @@ type Comment struct {
 	VideoID uint   `json:"video_id,omitempty"`
 	Video   Video  `gorm:"foreignKey:VideoID"`
 	User    User   `gorm:"foreignKey:UserID"`
-	ShotID  uint   `json:"shot_id,omitempty"`
-	Shot    Shot   `gorm:"foreignKey:ShotID"`
 }
 
 type CommentDTO struct {

@@ -318,3 +318,53 @@ func (m *Repo) HandleWatchLater(c *gin.Context) {
 
 	c.JSON(201, gin.H{"message": "video added to watch later"})
 }
+
+// HandleGetWatchLater get all watch later videos by user ID with pagination
+func (m *Repo) HandleGetWatchLater(c *gin.Context) {
+	userID, ok := c.Get("user_id")
+	if !ok {
+		c.JSON(401, gin.H{"error": "unauthorized"})
+		return
+	}
+
+	userIDUint := uint(userID.(float64))
+	if userIDUint == 0 {
+		c.JSON(401, gin.H{"error": "unauthorized"})
+		return
+	}
+
+	var (
+		err         error
+		page, limit int
+	)
+
+	page, err = strconv.Atoi(c.DefaultQuery("page", "1"))
+	if err != nil {
+		c.JSON(400, gin.H{"error": "invalid page number"})
+		return
+	}
+
+	limit, err = strconv.Atoi(c.DefaultQuery("limit", "12"))
+	if err != nil {
+		c.JSON(400, gin.H{"error": "invalid limit number"})
+		return
+	}
+
+	var (
+		videos []models.VideoDTO
+		total  int64
+	)
+
+	videos, total, err = m.App.DBMethods.GetWatchLaterVideos(userIDUint, page, limit)
+	if err != nil {
+		c.JSON(500, gin.H{"error": "internal server error"})
+		return
+	}
+
+	var has_next_page bool
+	if total > int64(page*limit) {
+		has_next_page = true
+	}
+
+	c.JSON(200, gin.H{"videos": videos, "total": total, "has_next_page": has_next_page, "page": page})
+}
