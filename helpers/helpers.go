@@ -17,6 +17,7 @@ import (
 	"github.com/raihan2bd/vidverse/models"
 )
 
+
 // Decode the token
 func DecodeToken(tokenString string) (jwt.MapClaims, error) {
 	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
