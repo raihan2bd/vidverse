@@ -143,6 +143,7 @@ func (v *Validator) IsVideo(videoType, key string) {
 	}
 }
 
+
 // Validate Video Size
 func (v *Validator) IsVideoSize(videoSize, max int64, key string) {
 	if videoSize > max {
