@@ -68,8 +68,6 @@ This is the back-end version. If you want to see the front-end part please visit
 ***Update soon***
 
 
-> <a href="https://filmwise-front.vercel.app/" target="_blank">Live Demo Link</a>
-
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
 ### Key Features <a name="key-features"></a>
