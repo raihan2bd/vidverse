@@ -107,7 +107,7 @@ In order to run this project you need:
 - Then make sure you have installed [PostgreSQL](https://www.postgresql.org/) on your local machine if you want to use this project locally.
 - Then Create a database called `vidverse`
 
-- First of all to see this project's graphical interface make sure you run the [front-end](https://github.com/raihan2bd/filmwise-front) part
+- First of all to see this project's graphical interface make sure you run the [front-end](https://github.com/raihan2bd/vidverse-client) part
 
 ### Setup
 
