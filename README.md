@@ -115,7 +115,7 @@ In order to run this project you need:
 
 ```sh
   cd your-folder
-  https://github.com/raihan2bd/filmwise.git
+  https://github.com/raihan2bd/vidverse
 ```
 
 - Before running the project please make sure you create a `.env` or rename the `.env.example` file to `.env` file and update the following credentials
