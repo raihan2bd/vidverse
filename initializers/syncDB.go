@@ -104,11 +104,13 @@ func seedChannels() {
 			Title:       "Channel 1",
 			Description: "Description for Channel 1",
 			UserID:      1,
+			Logo:        "https://res.cloudinary.com/dog87elav/image/upload/v1703925125/vidverse/uploads/default-images/default_cover_ynckzo.jpg",
 		},
 		{
 			Title:       "Channel 2",
 			Description: "Description for Channel 2",
 			UserID:      2,
+			Logo:        "https://res.cloudinary.com/dog87elav/image/upload/v1703925125/vidverse/uploads/default-images/default_cover_ynckzo.jpg",
 		},
 	}
 

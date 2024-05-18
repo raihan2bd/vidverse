@@ -45,6 +45,7 @@ func NewRouter() *gin.Engine {
 	// insert watch later video
 	v1.POST("/watch_later", IsLoggedIn, handlers.Methods.HandleWatchLater)
 	v1.GET("/watch_later", IsLoggedIn, handlers.Methods.HandleGetWatchLater)
+	v1.DELETE("/watch_later/:videoID", IsLoggedIn, handlers.Methods.HandleRemoveWatchLater)
 
 	// routes for shots
 	v1.POST("/shots", isAuthor, handlers.Methods.HandleCreateShot)

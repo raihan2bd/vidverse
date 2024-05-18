@@ -63,4 +63,5 @@ type DatabaseRepo interface {
 	// Watch Later
 	CreateWatchLater(watchLater *models.WatchLater) error
 	GetWatchLaterVideos(userID uint, page, limit int) ([]models.VideoDTO, int64, error)
+	RemoveWatchLater(userID, videoID uint) error
 }

@@ -485,6 +485,13 @@ func (m *postgresDBRepo) GetLikedVideos(userIDUint uint, page, limit int) ([]mod
 
 // CreateWatchLater create watch later
 func (m *postgresDBRepo) CreateWatchLater(watchLater *models.WatchLater) error {
+	// check if the video is already in the watch later list
+	var wl models.WatchLater
+	err := m.DB.Where("user_id = ? AND video_id = ?", watchLater.UserID, watchLater.VideoID).First(&wl).Error
+	if err == nil {
+		return nil
+	}
+
 	result := m.DB.Create(&watchLater)
 	if result.Error != nil {
 		return errors.New("failed to create watch later")
@@ -512,4 +519,14 @@ func (m *postgresDBRepo) GetWatchLaterVideos(userIDUint uint, page, limit int) (
 	}
 
 	return videos, count, nil
+}
+
+// Remove watch later by userID and videoID
+func (m *postgresDBRepo) RemoveWatchLater(userID, videoID uint) error {
+	result := m.DB.Unscoped().Where("user_id = ? AND video_id = ?", userID, videoID).Delete(&models.WatchLater{})
+	if result.Error != nil {
+		return errors.New("failed to remove watch later")
+	}
+
+	return nil
 }

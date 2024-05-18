@@ -368,3 +368,32 @@ func (m *Repo) HandleGetWatchLater(c *gin.Context) {
 
 	c.JSON(200, gin.H{"videos": videos, "total": total, "has_next_page": has_next_page, "page": page})
 }
+
+// HandleRemoveWatchLater remove watch later video by video ID
+func (m *Repo) HandleRemoveWatchLater(c *gin.Context) {
+	userID, ok := c.Get("user_id")
+	if !ok {
+		c.JSON(401, gin.H{"error": "unauthorized"})
+		return
+	}
+
+	userIDUint := uint(userID.(float64))
+	if userIDUint == 0 {
+		c.JSON(401, gin.H{"error": "unauthorized"})
+		return
+	}
+
+	videoID, err := strconv.Atoi(c.Param("videoID"))
+	if err != nil {
+		c.JSON(400, gin.H{"error": "invalid video id"})
+		return
+	}
+
+	err = m.App.DBMethods.RemoveWatchLater(userIDUint, uint(videoID))
+	if err != nil {
+		c.JSON(500, gin.H{"error": "internal server error"})
+		return
+	}
+
+	c.JSON(204, gin.H{"message": "video removed from watch later"})
+}
