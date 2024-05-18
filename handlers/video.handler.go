@@ -454,6 +454,17 @@ func (m *Repo) HandleGetRelatedVideos(c *gin.Context) {
 		return
 	}
 
+	fmt.Println("Channel ID: ", id)
+
+	videoID, err := strconv.Atoi(c.Params.ByName("videoID"))
+
+	if err != nil {
+		c.IndentedJSON(http.StatusBadGateway, gin.H{
+			"error": "Invalid ID",
+		})
+		return
+	}
+
 	var videos []models.VideoDTO
 	videos, _, err = m.App.DBMethods.GetVideosByChannelID(id, 1, 24)
 
@@ -464,13 +475,21 @@ func (m *Repo) HandleGetRelatedVideos(c *gin.Context) {
 		return
 	}
 
-	if len(videos) == 0 {
+	if len(videos) < 24 {
 		videos, _, err = m.App.DBMethods.GetAllVideos(1, 24, "")
 		if err != nil {
 			c.IndentedJSON(http.StatusInternalServerError, gin.H{
 				"error": err,
 			})
 			return
+		}
+	}
+
+	// remove the current video from the list
+	for i, v := range videos {
+		if v.ID == uint(videoID) {
+			videos = append(videos[:i], videos[i+1:]...)
+			break
 		}
 	}
 

@@ -147,7 +147,7 @@ func (m *postgresDBRepo) GetAllVideos(page, limit int, searchQuery string) ([]mo
 		Where("videos.title ILIKE ? OR videos.description ILIKE ? OR channels.title ILIKE ?", "%"+searchQuery+"%", "%"+searchQuery+"%", "%"+searchQuery+"%").
 		Count(&count).
 		Offset(offset).Limit(limit).
-		Order("videos.created_at asc").
+		Order("videos.created_at desc").
 		Find(&videos).Error
 	if err != nil {
 		return nil, 0, errors.New("internal server error. Please try again")

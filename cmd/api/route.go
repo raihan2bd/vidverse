@@ -40,7 +40,7 @@ func NewRouter() *gin.Engine {
 	v1.GET("/get_videos/:channelID", handlers.Methods.HandleGetVideosByChannelID)
 	v1.GET("/videos/:videoID", HasToken, handlers.Methods.HandleGetSingleVideo)
 	v1.DELETE("/videos/:videoID", isAuthor, handlers.Methods.HandleDeleteVideo)
-	v1.GET("/related_videos/:channelID", handlers.Methods.HandleGetRelatedVideos)
+	v1.GET("/related_videos/:channelID/:videoID", handlers.Methods.HandleGetRelatedVideos)
 	v1.GET("/file/video/:videoID", handlers.Methods.StreamVideoBuff)
 	// insert watch later video
 	v1.POST("/watch_later", IsLoggedIn, handlers.Methods.HandleWatchLater)
