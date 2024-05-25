@@ -93,6 +93,32 @@ type Video struct {
 	ThumbPublicID string    `gorm:"type:varchar(255)" json:"-"`
 }
 
+type Short struct {
+	CustomModel
+	Title         string `gorm:"type:varchar(255);not null" json:"title,omitempty" binding:"required,min=2,max=255"`
+	Description   string `gorm:"type:text;size:500;not null" json:"description,omitempty" binding:"required,min=2,max=500"`
+	PublicID      string `gorm:"type:varchar(255);not null" json:"-"`
+	SecureURL     string `gorm:"type:varchar(255);not null" json:"secure_url,omitempty"`
+	ChannelID     uint   `json:"channel_id,omitempty"`
+	Channel       Channel
+	Thumb         string `gorm:"type:varchar(255)" json:"tumb,omitempty"`
+	Likes         []Like `json:"likes,omitempty"`
+	Comments      []Comment
+	Views         int64  `gorm:"type:bigint;not null;default:0" json:"views,omitempty"`
+	ThumbPublicID string `gorm:"type:varchar(255)" json:"-"`
+}
+
+type ShortDTO struct {
+	ID           uint      `json:"id"`
+	Title        string    `json:"title"`
+	Thumb        string    `json:"thumb"`
+	Views        int64     `json:"views"`
+	ChannelID    uint      `json:"channel_id"`
+	ChannelTitle string    `json:"channel_title"`
+	ChannelLogo  string    `json:"channel_logo"`
+	CreatedAt    time.Time `json:"created_at"`
+}
+
 type VideoDTO struct {
 	ID           uint      `json:"id"`
 	Title        string    `json:"title"`
@@ -108,8 +134,10 @@ type Like struct {
 	CustomModel
 	UserID  uint  `json:"user_id"`
 	VideoID uint  `json:"video_id,omitempty"`
-	Video   Video `gorm:"foreignKey:VideoID"`
+	Video   Video `gorm:"foreignKey:VideoID;default:NULL" json:"video,omitempty"`
 	User    User  `gorm:"foreignKey:UserID"`
+	ShortID uint  `json:"short_id,omitempty"`
+	Short   Short `gorm:"foreignKey:ShortID;default:NULL" json:"short,omitempty"`
 }
 
 type Comment struct {
@@ -117,8 +145,10 @@ type Comment struct {
 	Text    string `gorm:"type:text;size:500" json:"text"`
 	UserID  uint   `json:"user_id"`
 	VideoID uint   `json:"video_id,omitempty"`
-	Video   Video  `gorm:"foreignKey:VideoID"`
+	Video   Video  `gorm:"foreignKey:VideoID;default:NULL" json:"video,omitempty"`
 	User    User   `gorm:"foreignKey:UserID"`
+	ShortID uint   `json:"short_id,omitempty"`
+	Short   Short  `gorm:"foreignKey:ShortID;default:NULL" json:"short,omitempty"`
 }
 
 type CommentDTO struct {
