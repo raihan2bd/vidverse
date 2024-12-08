@@ -138,16 +138,25 @@ func (v *Validator) IsValidFullName(fullName, key string) {
 
 // Validate Video Type
 func (v *Validator) IsVideo(videoType, key string) {
-	if videoType != "video/mp4" && videoType != "video/ogg" && videoType != "video/webm" && videoType != "video/3gp" && videoType != "video/mov" && videoType != "video/avi" && videoType != "video/wmv" && videoType != "video/flv" && videoType != "video/mkv" {
+	if videoType != "video/mp4" &&
+		videoType != "video/ogg" &&
+		videoType != "video/webm" &&
+		videoType != "video/3gpp" &&
+		videoType != "video/quicktime" &&
+		videoType != "video/x-msvideo" &&
+		videoType != "video/x-ms-wmv" &&
+		videoType != "video/x-flv" &&
+		videoType != "video/x-matroska" {
 		v.AddError(key, "Invalid video type. Please upload a valid video type")
 	}
 }
 
-
 // Validate Video Size
 func (v *Validator) IsVideoSize(videoSize, max int64, key string) {
 	if videoSize > max {
-		v.AddError(key, "Invalid video size. Please upload a valid video size. Maximum size is 10MB")
+		// Convert the maximum size to MB for display
+		maxMB := max / (1024 * 1024)
+		v.AddError(key, fmt.Sprintf("Invalid video size. Please upload a valid video size. Maximum size is %dMB.", maxMB))
 	}
 }
 
